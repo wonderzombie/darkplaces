@@ -1,0 +1,39 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+sourceCompatibility = 1.7
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = ["src/"]
+
+eclipse.project.name = appName + "-core"
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+dependencies {
+    ext {
+        // Update this version to match the latest KTX release:
+        ktxVersion = '1.10.0-b1'
+    }
+    compile "io.github.libktx:ktx-app:$ktxVersion"
+    compile "io.github.libktx:ktx-assets:$ktxVersion"
+    compile "io.github.libktx:ktx-ashley:$ktxVersion"
+    compile "io.github.libktx:ktx-graphics:$ktxVersion"
+    compile "io.github.libktx:ktx-math:$ktxVersion"
+    compile "io.github.libktx:ktx-scene2d:$ktxVersion"
+    compile "io.github.libktx:ktx-tiled:$ktxVersion"
+
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
