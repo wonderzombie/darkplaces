@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.5.0" orientation="orthogonal" renderorder="right-up" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="1">
+ <tileset firstgid="1" source="darkplaces.tsx"/>
+ <tileset firstgid="181" source="shadows_.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="20" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjZWBgUKASZgNiISC2A2J7II4GYlskDBLrhIqD2A5Q8Q4oG11cAGqeIxoWBuIAMjCyeSD+CiqbF0Bn87KoZF4wEIdQ0X1JQJxMonnUil9xIDaAmqMHxPpArE2EXmxhCXMfOW7B519S4pBU86jtPkrNEwFiJiphUSAGABFWSqc=
+  </data>
+ </layer>
+ <layer id="4" name="Tile Layer 2" width="20" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjYMAEKljEKAHCFOrfCsS7kDAIbAPi3SRiGNiPxY4DFLhvuJrXTWXzZlHZPHwAXT8l5oHS2jkgPg3Ee6D4HAXmUeIWaps3ncrmLaNALzEAAJvmIEY=
+  </data>
+ </layer>
+</map>

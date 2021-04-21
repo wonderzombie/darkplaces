@@ -5,7 +5,8 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
-import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
@@ -13,12 +14,15 @@ import com.mygdx.game.TypeComponent.Type.MONSTER
 import com.mygdx.game.TypeComponent.Type.PLAYER
 import com.mygdx.game.constants.AppConstants
 import com.mygdx.game.constants.Assets
+import com.mygdx.game.constants.Assets.Descriptors
 import ktx.app.KtxScreen
 import ktx.ashley.add
 import ktx.ashley.entity
 import ktx.ashley.with
 
 class MainScreen(private val game: TheGame) : KtxScreen {
+  private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
+  private lateinit var tiledMap: TiledMap
   private lateinit var slimeAnim: Animation<AtlasRegion>
   private lateinit var npcSheet: TextureAtlas
 
@@ -33,7 +37,9 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   override fun show() {
     game.assetManager.finishLoading()
 
-//    npcSheet = game.assetManager.get(Assets.Descriptors.NPC_SHEET)
+    tiledMap = game.assetManager.get(Descriptors.MAP)
+    tiledMapRenderer =
+      OrthogonalTiledMapRenderer(tiledMap, game.batch).apply { setView(orthoCamera) }
 
     orthoCamera.apply {
       setToOrtho(false, viewportWidth, viewportHeight)
@@ -48,10 +54,15 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   override fun dispose() {
     game.engine.clearPools()
     stage.dispose()
+    tiledMap.dispose()
+    tiledMapRenderer.dispose()
+    npcSheet.dispose()
   }
 
   override fun render(delta: Float) {
     ScreenUtils.clear(0.2f, 0.2f, 0.2f, 1f)
+    tiledMapRenderer.render()
+
     game.engine.update(delta)
   }
 
@@ -90,7 +101,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
             animation = slimeAnim
           }
           with<ActorComponent> {
-            actor.setPosition(100f, 100f)
+            actor.setPosition(10f * it, 10f * it)
             with(firstFrame) {
               actor.setBounds(
                 regionX.toFloat(),

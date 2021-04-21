@@ -5,10 +5,13 @@ import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.mygdx.game.constants.Assets
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.mygdx.game.constants.Assets.Descriptors
 import ktx.app.KtxGame
 
 class TheGame : KtxGame<MainScreen>() {
@@ -36,7 +39,10 @@ class TheGame : KtxGame<MainScreen>() {
 
 
   private fun initAssets() {
-    assetManager.load(Assets.Descriptors.SLIME_SHEET)
+    assetManager.load(Descriptors.SLIME_SHEET)
+
+    assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
+    assetManager.load(Descriptors.MAP)
   }
 
   private fun initEngine(engine: PooledEngine) {
