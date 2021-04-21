@@ -1,0 +1,12 @@
+Slime.png
+size: 32, 64
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Slime
+  rotate: false
+  xy: 0, 0
+  size: 32, 64
+  orig: 32, 64
+  offset: 0, 0
+  index: -1

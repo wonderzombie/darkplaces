@@ -1,6 +1,9 @@
 package com.mygdx.game
 
+import com.badlogic.ashley.core.Entity
+import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.core.PooledEngine
+import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -8,21 +11,22 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.mygdx.game.constants.Assets
 import ktx.app.KtxGame
 
-
 class TheGame : KtxGame<MainScreen>() {
-  internal var font: BitmapFont = BitmapFont()
-  internal var batch: SpriteBatch = SpriteBatch()
-  internal var camera: OrthographicCamera = OrthographicCamera()
+  internal lateinit var font: BitmapFont
+  internal lateinit var assetManager: AssetManager
+  internal lateinit var batch: SpriteBatch
 
-  internal var engine = PooledEngine()
-  internal var assetManager: AssetManager = AssetManager()
+  private val camera: OrthographicCamera = OrthographicCamera()
+  internal val engine = PooledEngine()
 
   override fun create() {
-    camera.setToOrtho(false, 800f, 480f)
-    batch = SpriteBatch()
     font = BitmapFont()
+    assetManager = AssetManager()
+    batch = SpriteBatch()
 
-    initEngine()
+    camera.setToOrtho(false, 800f, 480f)
+
+    initEngine(engine)
     initAssets()
 
     // maybe someday we'll have more than one screen
@@ -30,10 +34,59 @@ class TheGame : KtxGame<MainScreen>() {
     setScreen(MainScreen::class.java)
   }
 
+
   private fun initAssets() {
-    assetManager.load(Assets.Descriptors.NPC_SHEET)
+    assetManager.load(Assets.Descriptors.SLIME_SHEET)
   }
 
-  private fun initEngine() {
+  private fun initEngine(engine: PooledEngine) {
+    engine.addSystem(PlayerSystem())
+    engine.addSystem(ActorSystem())
+    engine.addSystem(RenderSystem(batch))
+  }
+
+  class PlayerSystem : IteratingSystem(Family.one(PlayerComponent::class.java).get()) {
+    override fun processEntity(entity: Entity?, deltaTime: Float) {
+      entity ?: return
+    }
+  }
+
+  class ActorSystem : IteratingSystem(Family.all(ActorComponent::class.java).get()) {
+    override fun processEntity(entity: Entity?, deltaTime: Float) {
+      entity ?: return
+    }
+  }
+
+  class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem.family) :
+    IteratingSystem(family) {
+    companion object {
+      val family: Family =
+        Family.all(
+          ActorComponent::class.java,
+          AnimationComponent::class.java
+        ).get()
+    }
+
+    override fun processEntity(entity: Entity?, deltaTime: Float) {
+      entity ?: return
+
+      val animComp = Components.animMapper.get(entity)
+      val actorComp = Components.actorMapper.get(entity)
+
+      val anim = with(animComp) {
+        stateTime += deltaTime
+        if (animation.keyFrames.isNotEmpty()) animation else texAnimation
+      }
+
+      batch.begin()
+      with(actorComp.actor) {
+        batch.draw(
+          anim.getKeyFrame(animComp.stateTime),
+          x, y, originX, originY, width, height, scaleX, scaleY, rotation
+        )
+      }
+      batch.end()
+    }
+
   }
 }

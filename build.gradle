@@ -62,6 +62,7 @@ project(":desktop") {
 
 project(":core") {
     apply plugin: "java-library"
+    apply plugin: "kotlin"
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"

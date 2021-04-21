@@ -18,13 +18,14 @@ dependencies {
         // Update this version to match the latest KTX release:
         ktxVersion = '1.10.0-b1'
     }
-    compile "io.github.libktx:ktx-app:$ktxVersion"
-    compile "io.github.libktx:ktx-assets:$ktxVersion"
-    compile "io.github.libktx:ktx-ashley:$ktxVersion"
-    compile "io.github.libktx:ktx-graphics:$ktxVersion"
-    compile "io.github.libktx:ktx-math:$ktxVersion"
-    compile "io.github.libktx:ktx-scene2d:$ktxVersion"
-    compile "io.github.libktx:ktx-tiled:$ktxVersion"
+    api "io.github.libktx:ktx-app:$ktxVersion"
+    api "io.github.libktx:ktx-assets:$ktxVersion"
+    api "io.github.libktx:ktx-ashley:$ktxVersion"
+    api "io.github.libktx:ktx-graphics:$ktxVersion"
+    api "io.github.libktx:ktx-math:$ktxVersion"
+    api "io.github.libktx:ktx-scene2d:$ktxVersion"
+    api "io.github.libktx:ktx-tiled:$ktxVersion"
+    api "io.github.libktx:ktx-collections:$ktxVersion"
 
 }
 compileKotlin {
