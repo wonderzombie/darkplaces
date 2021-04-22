@@ -21,6 +21,7 @@ import ktx.ashley.entity
 import ktx.ashley.with
 
 class MainScreen(private val game: TheGame) : KtxScreen {
+  private lateinit var actorAtlas: TextureAtlas
   private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
   private lateinit var tiledMap: TiledMap
   private lateinit var slimeAnim: Animation<AtlasRegion>
@@ -37,6 +38,8 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   override fun show() {
     game.assetManager.finishLoading()
 
+    actorAtlas = game.assetManager.get(Descriptors.ACTOR_SHEET)
+
     tiledMap = game.assetManager.get(Descriptors.MAP)
     tiledMapRenderer =
       OrthogonalTiledMapRenderer(tiledMap, game.batch).apply { setView(orthoCamera) }
@@ -47,7 +50,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     }
 
     initAnim()
-//    initPlayer()
+    initPlayer()
     initEntities()
   }
 
@@ -73,8 +76,9 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   }
 
   private fun initAnim() {
-    val frames = game.assetManager.get(Assets.Descriptors.SLIME_SHEET)?.findRegions("Slime")
-    slimeAnim = Animation(0.3f, frames).also { it.playMode = LOOP }
+    val frames =
+      game.assetManager.get(Assets.Descriptors.SLIME_SHEET).findRegions("Slime")
+    slimeAnim = Animation(0.9f, frames).also { it.playMode = LOOP }
   }
 
   private fun initPlayer() {
@@ -84,7 +88,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
         with<ActorComponent> {}.also { stage.addActor(it.actor) }
         with<AnimationComponent> {
-          animation = Animation(0.3f, npcSheet.findRegions(Assets.Names.ELITE_KNIGHT_IDLE), LOOP)
+          animation = Animation(0.3f, actorAtlas.findRegions(Assets.Names.HERO_F_IDLE_R), LOOP)
         }
         with<TypeComponent> { type = PLAYER }
         with<StateComponent> {}
@@ -95,7 +99,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   private fun initEntities() {
     val firstFrame = slimeAnim.keyFrames.first()
     game.engine.add {
-      (0..2).onEach {
+      (0..0).onEach {
         entity {
           with<AnimationComponent> {
             animation = slimeAnim

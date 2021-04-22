@@ -39,10 +39,11 @@ class TheGame : KtxGame<MainScreen>() {
 
 
   private fun initAssets() {
-    assetManager.load(Descriptors.SLIME_SHEET)
-
     assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
+
     assetManager.load(Descriptors.MAP)
+    assetManager.load(Descriptors.ACTOR_SHEET)
+    assetManager.load(Descriptors.SLIME_SHEET)
   }
 
   private fun initEngine(engine: PooledEngine) {

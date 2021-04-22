@@ -6,7 +6,14 @@ repeat: none
 Slime
   rotate: false
   xy: 0, 0
-  size: 32, 64
+  size: 32, 32
   orig: 32, 64
   offset: 0, 0
-  index: -1
+  index: 1
+Slime
+  rotate: false
+  xy: 0, 32
+  size: 32, 32
+  orig: 32, 64
+  offset: 0, 0
+  index: 2
