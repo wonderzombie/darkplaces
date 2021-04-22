@@ -11,19 +11,17 @@ import ktx.ashley.mapperFor
 
 class Components {
   companion object {
-    internal val playerMapper = mapperFor<PlayerComponent>()
-    internal val animMapper = mapperFor<AnimationComponent>()
-    internal val stateMapper = mapperFor<StateComponent>()
-    internal val typeMapper = mapperFor<TypeComponent>()
-    internal val actorMapper = mapperFor<ActorComponent>()
+    internal val Player = mapperFor<PlayerComponent>()
+    internal val Animation = mapperFor<AnimationComponent>()
+    internal val State = mapperFor<StateComponent>()
+    internal val Type = mapperFor<TypeComponent>()
+    internal val Actor = mapperFor<ActorComponent>()
   }
 }
 
 internal class PlayerComponent : Component
 
-internal class ActorComponent : Component {
-  var actor: Actor = Actor()
-}
+internal class ActorComponent(val actor: Actor = Actor()) : Component
 
 internal class AnimationComponent : Component {
   var stateTime: Float = 0f
@@ -39,20 +37,21 @@ internal class TypeComponent : Component {
     MONSTER,
     NPC
   }
-
   var type: Type = UNSET
 }
 
 internal class StateComponent : Component {
+
   enum class State {
     UNSET,
-    NOMINAL,
+    IDLE,
     MOVING,
+    DEAD,
   };
 
   var stateTime = 0f
 
-  var state = UNSET
+  var state = State.UNSET
     set(value) {
       stateTime = 0f
       field = value

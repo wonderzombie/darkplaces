@@ -7,9 +7,12 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.TypeComponent.Type.MONSTER
 import com.mygdx.game.TypeComponent.Type.PLAYER
 import com.mygdx.game.constants.AppConstants
@@ -34,6 +37,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     orthoCamera
   )
   private val stage: Stage = Stage(viewport)
+  private val logger: Logger = Logger("main")
 
   override fun show() {
     game.assetManager.finishLoading()
@@ -42,7 +46,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
     tiledMap = game.assetManager.get(Descriptors.MAP)
     tiledMapRenderer =
-      OrthogonalTiledMapRenderer(tiledMap, game.batch).apply { setView(orthoCamera) }
+      OrthogonalTiledMapRenderer(tiledMap, 1f, game.batch).apply { setView(orthoCamera) }
 
     orthoCamera.apply {
       setToOrtho(false, viewportWidth, viewportHeight)
@@ -55,10 +59,10 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   }
 
   override fun dispose() {
-    game.engine.clearPools()
     stage.dispose()
     tiledMap.dispose()
     tiledMapRenderer.dispose()
+    actorAtlas.dispose()
     npcSheet.dispose()
   }
 
@@ -78,49 +82,64 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   private fun initAnim() {
     val frames =
       game.assetManager.get(Assets.Descriptors.SLIME_SHEET).findRegions("Slime")
-    slimeAnim = Animation(0.9f, frames).also { it.playMode = LOOP }
+    slimeAnim = Animation(0.9f, frames, LOOP)
+  }
+
+  private fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
+    textureRegion?.also {
+      setBounds(
+        textureRegion.regionX.toFloat(),
+        textureRegion.regionY.toFloat(),
+        textureRegion.regionWidth.toFloat(),
+        textureRegion.regionHeight.toFloat()
+      )
+    }
+    return this
   }
 
   private fun initPlayer() {
+    val playerAnim = Animation(0.3f, actorAtlas.findRegions(Assets.Names.HERO_F_IDLE_R), LOOP)
     game.engine.add {
       entity {
         with<PlayerComponent> {}
 
-        with<ActorComponent> {}.also { stage.addActor(it.actor) }
+        with<ActorComponent> {
+          actor.setPosition(16f * 5, 16f * 5)
+          actor.setBounds(playerAnim.keyFrames.first())
+        }
         with<AnimationComponent> {
-          animation = Animation(0.3f, actorAtlas.findRegions(Assets.Names.HERO_F_IDLE_R), LOOP)
+          animation = playerAnim
         }
         with<TypeComponent> { type = PLAYER }
-        with<StateComponent> {}
+        with<StateComponent> { state = IDLE }
       }
     }
   }
 
   private fun initEntities() {
+    logger.info("initEntities")
     val firstFrame = slimeAnim.keyFrames.first()
     game.engine.add {
-      (0..0).onEach {
-        entity {
-          with<AnimationComponent> {
-            animation = slimeAnim
-          }
-          with<ActorComponent> {
-            actor.setPosition(10f * it, 10f * it)
-            with(firstFrame) {
-              actor.setBounds(
-                regionX.toFloat(),
-                regionY.toFloat(),
-                regionWidth.toFloat(),
-                regionHeight.toFloat()
-              )
-            }
-          }
-          with<StateComponent> {}
-          with<TypeComponent> { type = MONSTER }
+      // SLIME
+      entity {
+        with<AnimationComponent> {
+          animation = slimeAnim
         }
+        with<ActorComponent> {
+          actor.setPosition(16f * 3, 16f * 3)
+          with(firstFrame) {
+            actor.setBounds(
+              regionX.toFloat(),
+              regionY.toFloat(),
+              regionWidth.toFloat(),
+              regionHeight.toFloat()
+            )
+          }
+        }
+        with<StateComponent> {}
+        with<TypeComponent> { type = MONSTER }
       }
-    }
-
+    }.also { logger.info("entities: ${game.engine.entities}") }
   }
 
 }

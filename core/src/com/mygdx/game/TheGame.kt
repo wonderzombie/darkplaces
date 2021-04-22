@@ -1,7 +1,6 @@
 package com.mygdx.game
 
 import com.badlogic.ashley.core.Entity
-import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.assets.AssetManager
@@ -11,10 +10,13 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.utils.Logger
 import com.mygdx.game.constants.Assets.Descriptors
 import ktx.app.KtxGame
+import ktx.ashley.allOf
 
 class TheGame : KtxGame<MainScreen>() {
+  private val logger: Logger = Logger("thegame")
   internal lateinit var font: BitmapFont
   internal lateinit var assetManager: AssetManager
   internal lateinit var batch: SpriteBatch
@@ -39,6 +41,8 @@ class TheGame : KtxGame<MainScreen>() {
 
 
   private fun initAssets() {
+    logger.info("initAssets")
+
     assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
 
     assetManager.load(Descriptors.MAP)
@@ -47,53 +51,24 @@ class TheGame : KtxGame<MainScreen>() {
   }
 
   private fun initEngine(engine: PooledEngine) {
+    logger.info("initEngine")
     engine.addSystem(PlayerSystem())
     engine.addSystem(ActorSystem())
     engine.addSystem(RenderSystem(batch))
+    logger.info("initialized ${engine.systems.size()} systems")
   }
 
-  class PlayerSystem : IteratingSystem(Family.one(PlayerComponent::class.java).get()) {
+  class PlayerSystem : IteratingSystem(allOf(PlayerComponent::class).get()) {
     override fun processEntity(entity: Entity?, deltaTime: Float) {
       entity ?: return
     }
   }
 
-  class ActorSystem : IteratingSystem(Family.all(ActorComponent::class.java).get()) {
+  class InputSystem : IteratingSystem(allOf(PlayerComponent::class).get()) {
     override fun processEntity(entity: Entity?, deltaTime: Float) {
       entity ?: return
     }
   }
 
-  class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem.family) :
-    IteratingSystem(family) {
-    companion object {
-      val family: Family =
-        Family.all(
-          ActorComponent::class.java,
-          AnimationComponent::class.java
-        ).get()
-    }
 
-    override fun processEntity(entity: Entity?, deltaTime: Float) {
-      entity ?: return
-
-      val animComp = Components.animMapper.get(entity)
-      val actorComp = Components.actorMapper.get(entity)
-
-      val anim = with(animComp) {
-        stateTime += deltaTime
-        if (animation.keyFrames.isNotEmpty()) animation else texAnimation
-      }
-
-      batch.begin()
-      with(actorComp.actor) {
-        batch.draw(
-          anim.getKeyFrame(animComp.stateTime),
-          x, y, originX, originY, width, height, scaleX, scaleY, rotation
-        )
-      }
-      batch.end()
-    }
-
-  }
 }
