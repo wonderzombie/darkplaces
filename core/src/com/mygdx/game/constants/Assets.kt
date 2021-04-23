@@ -20,12 +20,19 @@ class Assets {
     }
   }
 
+  class Constants {
+    companion object {
+      const val unitScale = 1f
+    }
+  }
+
   class Names {
     companion object {
       const val MAP_NAME: String = "darkplaces_map.tmx"
 
       const val ACTOR_SHEET_NAME: String = "dungeon_sprites.txt"
       const val HERO_F_IDLE_R: String = "fHero_/idle_/rIdle"
+      const val SLIME_IDLE_R: String = "slime_/idle_/rIdle"
 
       const val SLIME_SHEET_NAME: String = "Slime.txt"
     }

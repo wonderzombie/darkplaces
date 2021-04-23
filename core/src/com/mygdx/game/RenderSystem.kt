@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import ktx.ashley.allOf
 
 class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem.family) :
-  IteratingSystem(family) {
+  IteratingSystem(family, 1) {
 
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return

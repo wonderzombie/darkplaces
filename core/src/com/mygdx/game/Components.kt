@@ -4,10 +4,15 @@ import com.badlogic.ashley.core.Component
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.utils.Logger
+import com.badlogic.gdx.utils.Logger.INFO
+import com.badlogic.gdx.utils.TimeUtils
+import com.mygdx.game.StageInputListener.Direction
 import com.mygdx.game.TypeComponent.Type.UNSET
 import ktx.ashley.mapperFor
-
 
 class Components {
   companion object {
@@ -16,12 +21,39 @@ class Components {
     internal val State = mapperFor<StateComponent>()
     internal val Type = mapperFor<TypeComponent>()
     internal val Actor = mapperFor<ActorComponent>()
+    internal val Movement = mapperFor<MovementComponent>()
   }
 }
 
-internal class PlayerComponent : Component
+internal class PlayerComponent : Component {}
 
-internal class ActorComponent(val actor: Actor = Actor()) : Component
+internal class MovementComponent : Component {
+  var lastDirection: Direction = Direction.NONE
+  var x = 16f
+  var y = 16f
+  var duration = 0.1f
+  var interp = Interpolation.fastSlow
+  var stateTime = 0f
+}
+
+private val actorLogger = Logger("actor", INFO)
+
+class DungeonActor : Actor() {
+  private var id: Long = TimeUtils.millis()
+  private var stateTime: Float = 0f
+
+  override fun act(delta: Float) {
+    stateTime += delta
+    if (TimeUtils.millis() % 1000L == 0L) {
+      actorLogger.info("acting acting")
+    }
+    super.act(delta)
+  }
+}
+
+internal class ActorComponent : Component {
+  lateinit var actor: DungeonActor
+}
 
 internal class AnimationComponent : Component {
   var stateTime: Float = 0f
@@ -37,11 +69,11 @@ internal class TypeComponent : Component {
     MONSTER,
     NPC
   }
+
   var type: Type = UNSET
 }
 
 internal class StateComponent : Component {
-
   enum class State {
     UNSET,
     IDLE,

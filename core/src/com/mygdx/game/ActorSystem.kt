@@ -6,10 +6,12 @@ import com.badlogic.ashley.core.EntityListener
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.utils.Logger
 import ktx.ashley.allOf
-import ktx.ashley.get
 
-class ActorSystem : IteratingSystem(allOf(ActorComponent::class).get()) {
-  private val logger: Logger = Logger("sys-actor")
+class ActorSystem : IteratingSystem(
+  allOf(ActorComponent::class, StateComponent::class, TypeComponent::class).get(),
+  0
+) {
+  private val logger: Logger = Logger("sys-actor", Logger.INFO)
 
   override fun addedToEngine(engine: Engine?) {
     engine?.addEntityListener(ActorListener())
@@ -17,14 +19,11 @@ class ActorSystem : IteratingSystem(allOf(ActorComponent::class).get()) {
   }
 
   override fun processEntity(entity: Entity?, deltaTime: Float) {
-    entity ?: return
-    entity[Components.Actor]?.actor ?: return
   }
-
 
   inner class ActorListener : EntityListener {
     override fun entityAdded(entity: Entity?) {
-      logger.info("entityAdded: $entity")
+      entity ?: return
     }
 
     override fun entityRemoved(entity: Entity?) {

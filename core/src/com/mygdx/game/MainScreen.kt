@@ -1,5 +1,6 @@
 package com.mygdx.game
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
@@ -18,6 +19,7 @@ import com.mygdx.game.TypeComponent.Type.PLAYER
 import com.mygdx.game.constants.AppConstants
 import com.mygdx.game.constants.Assets
 import com.mygdx.game.constants.Assets.Descriptors
+import com.mygdx.game.constants.Assets.Names
 import ktx.app.KtxScreen
 import ktx.ashley.add
 import ktx.ashley.entity
@@ -46,15 +48,22 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
     tiledMap = game.assetManager.get(Descriptors.MAP)
     tiledMapRenderer =
-      OrthogonalTiledMapRenderer(tiledMap, 1f, game.batch).apply { setView(orthoCamera) }
+      OrthogonalTiledMapRenderer(tiledMap, Assets.Constants.unitScale, game.batch).apply {
+        setView(
+          orthoCamera
+        )
+      }
 
     orthoCamera.apply {
       setToOrtho(false, viewportWidth, viewportHeight)
       update()
     }
 
-    initAnim()
-    initPlayer()
+    Gdx.input.inputProcessor = stage
+    stage.isDebugAll = true
+
+    initAnimations()
+    initPlayer(stage, 16f * 2, 16f * 2)
     initEntities()
   }
 
@@ -68,9 +77,14 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
   override fun render(delta: Float) {
     ScreenUtils.clear(0.2f, 0.2f, 0.2f, 1f)
-    tiledMapRenderer.render()
 
+    tiledMapRenderer.render()
     game.engine.update(delta)
+
+    with(stage) {
+      act(delta)
+      draw()
+    }
   }
 
   override fun resize(width: Int, height: Int) {
@@ -79,39 +93,52 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   override fun hide() {
   }
 
-  private fun initAnim() {
-    val frames =
-      game.assetManager.get(Assets.Descriptors.SLIME_SHEET).findRegions("Slime")
+  private fun initAnimations() {
+    val frames = actorAtlas.findRegions(Names.SLIME_IDLE_R)
     slimeAnim = Animation(0.9f, frames, LOOP)
   }
 
   private fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
     textureRegion?.also {
       setBounds(
-        textureRegion.regionX.toFloat(),
-        textureRegion.regionY.toFloat(),
-        textureRegion.regionWidth.toFloat(),
-        textureRegion.regionHeight.toFloat()
+        it.regionX.toFloat(),
+        it.regionY.toFloat(),
+        it.regionWidth.toFloat(),
+        it.regionHeight.toFloat()
       )
     }
     return this
   }
 
-  private fun initPlayer() {
+  private fun initPlayer(stage: Stage, initX: Float, initY: Float) {
     val playerAnim = Animation(0.3f, actorAtlas.findRegions(Assets.Names.HERO_F_IDLE_R), LOOP)
+    val newActor = DungeonActor()
     game.engine.add {
       entity {
         with<PlayerComponent> {}
 
         with<ActorComponent> {
-          actor.setPosition(16f * 5, 16f * 5)
-          actor.setBounds(playerAnim.keyFrames.first())
+          actor = newActor
+          with(actor) {
+            setBounds(playerAnim.keyFrames.first())
+            setPosition(initX, initY)
+            addListener(StageInputListener(this@entity))
+          }
+          stage.addActor(newActor)
+          stage.keyboardFocus = newActor
         }
+
         with<AnimationComponent> {
           animation = playerAnim
         }
+
         with<TypeComponent> { type = PLAYER }
         with<StateComponent> { state = IDLE }
+
+        with<MovementComponent> {
+          x = newActor.width
+          y = newActor.width
+        }
       }
     }
   }
@@ -121,25 +148,31 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     val firstFrame = slimeAnim.keyFrames.first()
     game.engine.add {
       // SLIME
-      entity {
-        with<AnimationComponent> {
-          animation = slimeAnim
-        }
-        with<ActorComponent> {
-          actor.setPosition(16f * 3, 16f * 3)
-          with(firstFrame) {
-            actor.setBounds(
-              regionX.toFloat(),
-              regionY.toFloat(),
-              regionWidth.toFloat(),
-              regionHeight.toFloat()
-            )
-          }
-        }
-        with<StateComponent> {}
-        with<TypeComponent> { type = MONSTER }
-      }
+      newSlime(16f * 3, 16f * 3, firstFrame)
+      newSlime(16f * 10, 16f * 8, firstFrame)
     }.also { logger.info("entities: ${game.engine.entities}") }
   }
 
+  private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) = game.engine.entity {
+    val newActor = DungeonActor()
+    with<AnimationComponent> {
+      animation = slimeAnim
+    }
+
+    with<ActorComponent> {
+      actor = newActor
+      with(firstFrame) {
+        actor.setBounds(
+          regionX.toFloat(),
+          regionY.toFloat(),
+          regionWidth.toFloat(),
+          regionHeight.toFloat()
+        )
+      }
+      stage.addActor(actor)
+    }
+
+    with<StateComponent> { state = IDLE }
+    with<TypeComponent> { type = MONSTER }
+  }
 }
