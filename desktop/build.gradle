@@ -25,6 +25,10 @@ task debug(dependsOn: classes, type: JavaExec) {
     debug = true
 }
 
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
 task dist(type: Jar) {
     manifest {
         attributes 'Main-Class': project.mainClassName

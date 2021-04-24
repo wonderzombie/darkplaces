@@ -1,15 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.5.0" orientation="orthogonal" renderorder="right-up" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="1">
+<map version="1.5" tiledversion="1.5.0" orientation="orthogonal" renderorder="right-up" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="31">
  <tileset firstgid="1" source="darkplaces.tsx"/>
  <tileset firstgid="181" source="shadows_.tsx"/>
- <layer id="1" name="Tile Layer 1" width="20" height="15">
+ <layer id="1" name="Tile Layer 1" width="20" height="15" locked="1">
   <data encoding="base64" compression="zlib">
    eJxjZWBgUKASZgNiISC2A2J7II4GYlskDBLrhIqD2A5Q8Q4oG11cAGqeIxoWBuIAMjCyeSD+CiqbF0Bn87KoZF4wEIdQ0X1JQJxMonnUil9xIDaAmqMHxPpArE2EXmxhCXMfOW7B519S4pBU86jtPkrNEwFiJiphUSAGABFWSqc=
   </data>
  </layer>
- <layer id="4" name="Tile Layer 2" width="20" height="15">
+ <layer id="4" name="Tile Layer 2" width="20" height="15" locked="1">
   <data encoding="base64" compression="zlib">
    eJxjYMAEKljEKAHCFOrfCsS7kDAIbAPi3SRiGNiPxY4DFLhvuJrXTWXzZlHZPHwAXT8l5oHS2jkgPg3Ee6D4HAXmUeIWaps3ncrmLaNALzEAAJvmIEY=
   </data>
  </layer>
+ <objectgroup id="5" name="Objects">
+  <object id="16" name="Spawn" type="Spawn" x="240" y="224">
+   <point/>
+  </object>
+  <object id="26" name="Downstairs" type="Stairs" x="48" y="48" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="6" name="Walls">
+  <object id="17" type="Walls" x="0" y="0" width="16" height="224"/>
+  <object id="18" type="Walls" x="16" y="0" width="304" height="16"/>
+  <object id="2" type="Walls" x="96" y="16" width="208" height="16"/>
+  <object id="3" type="Walls" x="304" y="16" width="16" height="208"/>
+  <object id="4" type="Walls" x="288" y="240" width="32"/>
+  <object id="5" type="Walls" x="0" y="224" width="320" height="16"/>
+  <object id="7" type="Walls" x="48" y="144" width="48" height="16"/>
+  <object id="9" type="Walls" x="80" y="16" width="16" height="128"/>
+  <object id="10" type="Walls" x="16" y="160" width="16"/>
+  <object id="25" type="Walls" x="16" y="144" width="16" height="16"/>
+  <object id="30" type="Walls" x="16" y="16" width="64" height="16"/>
+ </objectgroup>
+ <objectgroup id="7" name="Hazards">
+  <object id="21" type="Spikes" x="176" y="80" width="16" height="16"/>
+  <object id="22" type="Spikes" x="224" y="144" width="16" height="16"/>
+  <object id="23" type="Spikes" x="64" y="176" width="16" height="16"/>
+ </objectgroup>
 </map>

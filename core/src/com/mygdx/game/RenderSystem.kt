@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.allOf
 
 class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem.family) :
@@ -14,27 +15,32 @@ class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem
 
     val animComp = Components.Animation.get(entity)
     val actorComp = Components.Actor.get(entity)
+    val stateComp = Components.State.get(entity)
 
-    val anim = with(animComp) {
-      stateTime += deltaTime
-      if (animation.keyFrames.isNotEmpty()) animation else texAnimation
+    val currentAnim = when (stateComp.state) {
+      MOVING -> animComp.moving
+      else -> animComp.idle
     }
 
-    batch.begin()
-    with(actorComp.actor) {
-      batch.draw(
-        anim.getKeyFrame(animComp.stateTime),
-        x, y, originX, originY, width, height, scaleX, scaleY, rotation
-      )
+    currentAnim?.let {
+      batch.begin()
+      with(actorComp.actor) {
+        batch.draw(
+          it.getKeyFrame(animComp.stateTime),
+          x, y, originX, originY, width, height, scaleX, scaleY, rotation
+        )
+        animComp.stateTime += deltaTime
+      }
+      batch.end()
     }
-    batch.end()
   }
 
   companion object {
     val family: Family =
       allOf(
         ActorComponent::class,
-        AnimationComponent::class
+        AnimationComponent::class,
+        StateComponent::class
       ).get()
   }
 }

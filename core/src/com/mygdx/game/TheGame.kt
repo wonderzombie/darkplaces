@@ -51,9 +51,7 @@ class TheGame : KtxGame<MainScreen>() {
     logger.info("initEngine")
     engine.addSystem(ActorSystem())
     engine.addSystem(RenderSystem(batch))
-    engine.addSystem(InputSystem())
+    engine.addSystem(MovementSystem())
     logger.info("initialized ${engine.systems.size()} systems")
   }
-
-
 }

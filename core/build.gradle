@@ -5,6 +5,7 @@ sourceCompatibility = 1.7
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 sourceSets.main.java.srcDirs = ["src/"]
+sourceSets.test.java.srcDirs = ["src/**Test.kt"]
 
 eclipse.project.name = appName + "-core"
 repositories {
@@ -12,6 +13,7 @@ repositories {
 }
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'com.google.truth:truth:1.1.2'
 }
 dependencies {
     ext {
@@ -24,10 +26,10 @@ dependencies {
     compile "io.github.libktx:ktx-ashley:$ktxVersion"
     compile "io.github.libktx:ktx-graphics:$ktxVersion"
     compile "io.github.libktx:ktx-math:$ktxVersion"
+    compile "io.github.libktx:ktx-log:$ktxVersion"
     compile "io.github.libktx:ktx-scene2d:$ktxVersion"
     compile "io.github.libktx:ktx-tiled:$ktxVersion"
     compile "io.github.libktx:ktx-collections:$ktxVersion"
-
 }
 compileKotlin {
     kotlinOptions {

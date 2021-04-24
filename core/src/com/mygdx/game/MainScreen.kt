@@ -1,5 +1,6 @@
 package com.mygdx.game
 
+import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Animation
@@ -8,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Logger
@@ -24,13 +26,15 @@ import ktx.app.KtxScreen
 import ktx.ashley.add
 import ktx.ashley.entity
 import ktx.ashley.with
+import ktx.tiled.layer
 
 class MainScreen(private val game: TheGame) : KtxScreen {
+  private lateinit var playerMoveAnim: Animation<AtlasRegion>
+  private lateinit var playerIdleAnim: Animation<AtlasRegion>
   private lateinit var actorAtlas: TextureAtlas
   private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
   private lateinit var tiledMap: TiledMap
   private lateinit var slimeAnim: Animation<AtlasRegion>
-  private lateinit var npcSheet: TextureAtlas
 
   private val orthoCamera: OrthographicCamera = OrthographicCamera()
   private val viewport: ExtendViewport = ExtendViewport(
@@ -48,7 +52,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
     tiledMap = game.assetManager.get(Descriptors.MAP)
     tiledMapRenderer =
-      OrthogonalTiledMapRenderer(tiledMap, Assets.Constants.unitScale, game.batch).apply {
+      OrthogonalTiledMapRenderer(tiledMap, Assets.Constants.UNIT_SCALE, game.batch).apply {
         setView(
           orthoCamera
         )
@@ -62,9 +66,16 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     Gdx.input.inputProcessor = stage
     stage.isDebugAll = true
 
+    initEngine(game.engine)
     initAnimations()
-    initPlayer(stage, 16f * 2, 16f * 2)
+    initPlayer(stage)
     initEntities()
+
+    game.engine.addSystem(CollisionSystem(tiledMap.layer("Walls"), tiledMap.layer("Hazards")))
+  }
+
+  private fun initEngine(engine: PooledEngine) {
+    engine.addSystem(CollisionSystem(tiledMap.layer("Walls"), tiledMap.layer("Hazards")))
   }
 
   override fun dispose() {
@@ -72,7 +83,6 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     tiledMap.dispose()
     tiledMapRenderer.dispose()
     actorAtlas.dispose()
-    npcSheet.dispose()
   }
 
   override fun render(delta: Float) {
@@ -96,6 +106,8 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   private fun initAnimations() {
     val frames = actorAtlas.findRegions(Names.SLIME_IDLE_R)
     slimeAnim = Animation(0.9f, frames, LOOP)
+    playerIdleAnim = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_R), LOOP)
+    playerMoveAnim = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_R), LOOP)
   }
 
   private fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
@@ -110,8 +122,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     return this
   }
 
-  private fun initPlayer(stage: Stage, initX: Float, initY: Float) {
-    val playerAnim = Animation(0.3f, actorAtlas.findRegions(Assets.Names.HERO_F_IDLE_R), LOOP)
+  private fun initPlayer(stage: Stage, initX: Float = 16f * 3, initY: Float = 16f * 3) {
     val newActor = DungeonActor()
     game.engine.add {
       entity {
@@ -120,24 +131,30 @@ class MainScreen(private val game: TheGame) : KtxScreen {
         with<ActorComponent> {
           actor = newActor
           with(actor) {
-            setBounds(playerAnim.keyFrames.first())
+            setBounds(playerIdleAnim.keyFrames.first())
             setPosition(initX, initY)
-            addListener(StageInputListener(this@entity))
+            addListener(PlayerInputListener(this@entity))
           }
           stage.addActor(newActor)
           stage.keyboardFocus = newActor
         }
 
         with<AnimationComponent> {
-          animation = playerAnim
+          idle = playerIdleAnim
+          moving = playerMoveAnim
         }
 
         with<TypeComponent> { type = PLAYER }
         with<StateComponent> { state = IDLE }
 
         with<MovementComponent> {
-          x = newActor.width
-          y = newActor.width
+          x = 40f
+          y = 40f
+          interp = Interpolation.fastSlow
+        }
+
+        with<CollisionComponent> {
+          newActor.upateRect(boundingRect)
         }
       }
     }
@@ -156,19 +173,13 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) = game.engine.entity {
     val newActor = DungeonActor()
     with<AnimationComponent> {
-      animation = slimeAnim
+      idle = slimeAnim
     }
 
     with<ActorComponent> {
       actor = newActor
-      with(firstFrame) {
-        actor.setBounds(
-          regionX.toFloat(),
-          regionY.toFloat(),
-          regionWidth.toFloat(),
-          regionHeight.toFloat()
-        )
-      }
+      actor.setBounds(firstFrame)
+      actor.setPosition(stageX, stageY)
       stage.addActor(actor)
     }
 
