@@ -31,9 +31,9 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
     logger.info("event $event - keycode $keycode")
     if (keycode !in defaultKeymap) return false
 
-    val actor = player[Components.Actor]?.actor
-    val movementComp = player[Components.Movement]
-    val stateComp = player[Components.State]
+    val actor = player.actorComp()?.actor
+    val movementComp = player.movComp()
+    val stateComp = player.stateComp()
 
     val busy = stateComp?.state != IDLE
     val hasActions = actor?.hasActions() ?: true

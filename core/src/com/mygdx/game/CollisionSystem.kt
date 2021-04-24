@@ -58,7 +58,7 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return
 
-    val mov = entity.movement() ?: return
+    val mov = entity.movComp() ?: return
     val coll = entity.collComp() ?: return
     val actor = entity.actorComp()?.actor ?: return
 

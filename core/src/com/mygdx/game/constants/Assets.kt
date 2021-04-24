@@ -57,7 +57,11 @@ class Assets {
       const val MAP_NAME: String = "darkplaces_map.tmx"
 
       const val ACTOR_SHEET_NAME: String = "dungeon_sprites.txt"
+
+      const val HERO_F_IDLE_L: String = "fHero_/idle_/lIdle"
       const val HERO_F_IDLE_R: String = "fHero_/idle_/rIdle"
+
+      const val HERO_F_WALKRUN_L: String = "fHero_/idle_/lIdle"
       const val HERO_F_WALKRUN_R: String = "fHero_/walkRun_/rWalkRun"
 
       const val SLIME_IDLE_R: String = "slime_/idle_/rIdle"

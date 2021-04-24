@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Engine
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.EntityListener
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -27,7 +28,7 @@ internal class ActorComponent : Component {
 }
 
 class DungeonActor : Actor() {
-  private var id: String = TimeUtils.millis().toString()
+  private var id: String = "Actor|${TimeUtils.millis()}"
   var stateTime: Float = 0f
 
   fun upateRect(rect: Rectangle): Rectangle =
@@ -35,6 +36,19 @@ class DungeonActor : Actor() {
 
   val pos: Vector2 = vec2()
     get() = field.set(this.x, this.y)
+
+
+  fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
+    textureRegion?.also {
+      setBounds(
+        it.regionX.toFloat(),
+        it.regionY.toFloat(),
+        it.regionWidth.toFloat(),
+        it.regionHeight.toFloat()
+      )
+    }
+    return this
+  }
 }
 
 class ActorSystem : IteratingSystem(
@@ -58,13 +72,12 @@ class ActorSystem : IteratingSystem(
     val stateComp = State.get(entity)
     val type = Type.get(entity)
 
-    if (stateComp.stateTime == 0L) {
+    if (TimeUtils.timeSinceMillis(stateComp.stateTime) == 0L) {
       when (stateComp.state) {
         HIT -> applyHitEffect(actorComp.actor, type)
         DEAD -> applyDeadEffect(actorComp.actor, type)
       }
     }
-
   }
 
   private fun applyDeadEffect(actor: DungeonActor, typeComp: TypeComponent) {
@@ -76,10 +89,12 @@ class ActorSystem : IteratingSystem(
   }
 
   private fun applyHitEffect(actor: DungeonActor, typeComp: TypeComponent) {
-    when (typeComp.type) {
+    val effect = when (typeComp.type) {
       MONSTER -> ActorFX.HIT_RED_ACTION
       PLAYER -> ActorFX.HIT_BLINK_ACTION
+      else -> null
     }
+    effect?.also { actor.addAction(it) }
   }
 
   inner class ActorListener : EntityListener {

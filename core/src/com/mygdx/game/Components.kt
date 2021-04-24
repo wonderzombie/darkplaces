@@ -3,6 +3,7 @@ package com.mygdx.game
 import com.badlogic.ashley.core.Component
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
+import com.badlogic.gdx.utils.TimeUtils
 import com.mygdx.game.TypeComponent.Type.UNSET
 import ktx.ashley.mapperFor
 
@@ -19,7 +20,10 @@ class Components {
   }
 }
 
-internal class PlayerComponent : Component
+internal data class PlayerComponent(
+  var id: String = "P|${TimeUtils.millis()}",
+  var name: String = ""
+) : Component
 
 internal data class AnimationComponent(
   var stateTime: Float = 0f,
@@ -37,7 +41,6 @@ internal data class TypeComponent(var type: Type = UNSET) : Component {
 
 internal data class StateComponent(
   var stateTime: Long = 0L,
-  private var presentState: State = State.UNSET
 ) :
   Component {
   enum class State {
@@ -48,9 +51,9 @@ internal data class StateComponent(
     DEAD,
   }
 
-  var state: State = presentState
+  var state: State = State.UNSET
     set(value) {
       field = value
-      stateTime = 0L
+      stateTime = TimeUtils.millis()
     }
 }

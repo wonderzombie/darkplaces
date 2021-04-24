@@ -40,7 +40,7 @@ class CombatSystem : IteratingSystem(family) {
 
     applyHazardEffects(collComp, entity, comComp).also { if (it) stateComp.state = HIT }
 
-    if (checkDeath(comComp)) {
+    if (checkDead(comComp)) {
       stateComp.state = when (typeComp.type) {
         MONSTER -> DEAD.also { logger.info("dead monster") }
         else -> stateComp.state
@@ -63,7 +63,6 @@ class CombatSystem : IteratingSystem(family) {
       applyDamage(com, hazardDamage)
     }
 
-    val stateComp = State.get(entity)
 
     if (com.lastHitBy != null && TimeUtils.timeSinceMillis(com.lastHitTime) <= com.hitCooldown) {
     }
@@ -83,9 +82,8 @@ class CombatSystem : IteratingSystem(family) {
       lastHitTime = TimeUtils.millis()
     }
 
-  private fun checkDeath(comComp: CombatComponent): Boolean {
+  private fun checkDead(comComp: CombatComponent): Boolean {
     if (!comComp.mortal) return false
-
     return comComp.health <= 0
   }
 

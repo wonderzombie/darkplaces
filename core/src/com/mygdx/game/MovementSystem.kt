@@ -10,8 +10,6 @@ import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.TimeUtils
 import com.mygdx.game.Components.Companion.Actor
-import com.mygdx.game.Components.Companion.Collision
-import com.mygdx.game.Components.Companion.Movement
 import com.mygdx.game.Components.Companion.State
 import com.mygdx.game.PlayerInputListener.Direction
 import com.mygdx.game.PlayerInputListener.Direction.NONE
@@ -58,22 +56,22 @@ class MovementSystem : IteratingSystem(allOf(MovementComponent::class).get(), 1)
     entity ?: return
     if (Actor !in entity || State !in entity) return
 
-    val actor = Actor.get(entity)?.actor
-    val mov = Movement.get(entity)
-    val coll = Collision.get(entity)
-    val stateComp = State.get(entity)
+    val actor = entity.actorComp()?.actor ?: return
+    val mov = entity.movComp() ?: return
+    val stateComp = entity.stateComp() ?: return
+    val coll = entity.collComp()
 
-    val shouldStop = hasPendingCollision(coll)
-        || movActionComplete(mov)
+    val shouldStop = isCollisionPending(coll)
+        || isMoveActionComplete(mov)
 
     if (shouldStop) {
       stop(mov, stateComp)
-      actor?.also { "position: ${it.x},${it.y}" }
+      actor.also { "position: ${it.x},${it.y}" }
       maybeApplyCorrection(coll, actor)
       return
     }
 
-    mov?.let {
+    mov.let {
       if (mov.direction != mov.lastDirection || stateComp.state != MOVING) return@let
 
       it.currentMovement =
@@ -83,14 +81,14 @@ class MovementSystem : IteratingSystem(allOf(MovementComponent::class).get(), 1)
           0.01f,
           it.interp
         )
-      actor?.addAction(mov.currentMovement)
+      actor.addAction(mov.currentMovement)
     }
   }
 
-  private fun movActionComplete(mov: MovementComponent?): Boolean =
-    mov?.currentMovement?.let { it.isComplete } ?: false
+  private fun isMoveActionComplete(mov: MovementComponent?): Boolean =
+    mov?.currentMovement?.isComplete ?: false
 
-  private fun hasPendingCollision(coll: CollisionComponent?): Boolean =
+  private fun isCollisionPending(coll: CollisionComponent?): Boolean =
     coll?.let { !it.correction.isZero } ?: false
 
   private fun maybeApplyCorrection(

@@ -107,8 +107,10 @@ class MainScreen(private val game: TheGame) : KtxScreen {
   private fun initAnimations() {
     val frames = actorAtlas.findRegions(Names.SLIME_IDLE_R)
     slimeAnim = Animation(0.9f, frames, LOOP)
+    playerIdleAnim = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_L), LOOP)
     playerIdleAnim = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_R), LOOP)
     playerMoveAnim = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_R), LOOP)
+    playerMoveAnim = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_L), LOOP)
   }
 
   private fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
@@ -127,7 +129,9 @@ class MainScreen(private val game: TheGame) : KtxScreen {
     val newActor = DungeonActor()
     game.engine.add {
       entity {
-        with<PlayerComponent> {}
+        with<PlayerComponent> {
+          name = "HERO"
+        }
 
         with<ActorComponent> {
           actor = newActor
