@@ -3,7 +3,6 @@ package com.mygdx.game
 import com.badlogic.ashley.core.Component
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
-import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
@@ -31,31 +30,6 @@ class Components {
 
 internal class PlayerComponent : Component
 
-internal class MovementComponent : Component {
-  // The current direction. Setting this will update lastDirection and lastMoved.
-  var direction: Direction = Direction.NONE
-    set(value) {
-      lastDirection = field
-      field = value
-      if (direction != Direction.NONE) {
-        lastMoved = TimeUtils.millis()
-      }
-    }
-  var lastMoved: Long = 0L
-  var lastDirection: Direction = Direction.NONE
-
-  // The distance this entity should move.
-  var x = 0f
-  var y = 0f
-
-  // How quickly that move should happen.
-  var duration = 0.01f
-  var interp: Interpolation = Interpolation.fastSlow
-
-  // If the actor has a movement action, it may be here.
-  var currentMovement: MoveByAction? = null
-}
-
 private val actorLogger = Logger("actor", INFO)
 
 class DungeonActor : Actor() {
@@ -82,24 +56,22 @@ internal class ActorComponent : Component {
 
 }
 
-internal class AnimationComponent : Component {
-  var stateTime: Float = 0f
-
-  var idle: Animation<AtlasRegion>? = null
+internal data class AnimationComponent(
+  var stateTime: Float = 0f,
+  var idle: Animation<AtlasRegion>? = null,
   var moving: Animation<AtlasRegion>? = null
-}
+) : Component
 
-internal class TypeComponent : Component {
+internal data class TypeComponent(var type: Type = UNSET) : Component {
   enum class Type {
     UNSET,
     PLAYER,
     MONSTER,
   }
-
-  var type: Type = UNSET
 }
 
-internal class StateComponent : Component {
+internal data class StateComponent(var stateTime: Long = 0L, var state: State = State.UNSET) :
+  Component {
   enum class State {
     UNSET,
     IDLE,
@@ -107,29 +79,9 @@ internal class StateComponent : Component {
     DEAD,
   }
 
-  var stateTime = 0L
-
-  var state = State.UNSET
-    set(value) {
-      stateTime = 0L
-      field = value
-    }
-}
-
-internal class CollisionComponent : Component {
-  // The rectangle to use for collision. Actor.updateRect can help.
-  internal var boundingRect = Rectangle()
-
-  var lastCollTime = 0L
-
-  var lastMapObjColl: MapObject? = null
-    set(value) {
-      lastCollTime = TimeUtils.millis()
-      field = value
-    }
-
-  // When there's a collision, there may be a call to setPosition() to correct the overlap.
-  // The movement system should look at this, maybe adjust.
-  var correction = vec2()
-
+  fun update(newState: State): StateComponent {
+    state = newState
+    stateTime = 0L
+    return this
+  }
 }

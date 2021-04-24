@@ -1,5 +1,6 @@
 package com.mygdx.game
 
+import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.maps.MapLayer
@@ -21,6 +22,24 @@ import ktx.tiled.height
 import ktx.tiled.width
 import ktx.tiled.x
 import ktx.tiled.y
+
+internal class CollisionComponent : Component {
+  // The rectangle to use for collision. Actor.updateRect can help.
+  internal var boundingRect = Rectangle()
+
+  var lastCollTime = 0L
+
+  var lastMapObjColl: MapObject? = null
+    set(value) {
+      lastCollTime = TimeUtils.millis()
+      field = value
+    }
+
+  // When there's a collision, there may be a call to setPosition() to correct the overlap.
+  // The movement system should look at this, maybe adjust.
+  var correction = vec2()
+
+}
 
 class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsLayer: MapLayer) :
   IteratingSystem(
