@@ -76,6 +76,7 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
   private fun initEngine(engine: PooledEngine) {
     engine.addSystem(CollisionSystem(tiledMap.layer("Walls"), tiledMap.layer("Hazards")))
+    engine.addSystem(CombatSystem())
   }
 
   override fun dispose() {
@@ -155,6 +156,10 @@ class MainScreen(private val game: TheGame) : KtxScreen {
 
         with<CollisionComponent> {
           newActor.upateRect(boundingRect)
+        }
+
+        with<CombatComponent> {
+          health = 10
         }
       }
     }

@@ -73,25 +73,25 @@ class MovementSystem : IteratingSystem(allOf(MovementComponent::class).get(), 1)
       return
     }
 
-    if (mov?.direction == mov?.lastDirection && stateComp.state == MOVING) {
-      mov?.let {
-        it.currentMovement =
-          Actions.moveBy(
-            it.direction.x * it.x * deltaTime,
-            it.direction.y * it.y * deltaTime,
-            0.01f,
-            it.interp
-          )
-      }
-      actor?.addAction(mov?.currentMovement)
+    mov?.let {
+      if (mov.direction != mov.lastDirection || stateComp.state != MOVING) return@let
+
+      it.currentMovement =
+        Actions.moveBy(
+          it.direction.x * it.x * deltaTime,
+          it.direction.y * it.y * deltaTime,
+          0.01f,
+          it.interp
+        )
+      actor?.addAction(mov.currentMovement)
     }
   }
 
-  private fun movActionComplete(mov: MovementComponent?) =
-    mov?.currentMovement?.isComplete == true
+  private fun movActionComplete(mov: MovementComponent?): Boolean =
+    mov?.currentMovement?.let { it.isComplete } ?: false
 
-  private fun hasPendingCollision(coll: CollisionComponent?) =
-    coll?.correction?.isZero?.not() == true
+  private fun hasPendingCollision(coll: CollisionComponent?): Boolean =
+    coll?.let { !it.correction.isZero } ?: false
 
   private fun maybeApplyCorrection(
     coll: CollisionComponent?,

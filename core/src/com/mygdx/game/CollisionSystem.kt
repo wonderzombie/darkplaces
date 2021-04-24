@@ -31,14 +31,13 @@ internal class CollisionComponent : Component {
 
   var lastMapObjColl: MapObject? = null
     set(value) {
-      lastCollTime = TimeUtils.millis()
+      if (value != null) lastCollTime = TimeUtils.millis()
       field = value
     }
 
   // When there's a collision, there may be a call to setPosition() to correct the overlap.
-  // The movement system should look at this, maybe adjust.
+  // A hazard might not. The movement system may look at this and adjust the position to these coords.
   var correction = vec2()
-
 }
 
 class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsLayer: MapLayer) :
@@ -59,9 +58,11 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return
 
-    val mov = Components.Movement.get(entity) ?: return
-    val coll = Components.Collision.get(entity) ?: return
-    val actor = Components.Actor.get(entity)?.actor ?: return
+    val mov = entity.movement() ?: return
+    val coll = entity.collComp() ?: return
+    val actor = entity.actorComp()?.actor ?: return
+
+    coll.boundingRect = updateCollisionRect(actor, coll.boundingRect)
 
     handleCollisions(coll, actor, mov)
     handleHazards(coll)
@@ -83,8 +84,6 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
   private fun handleHazards(coll: CollisionComponent) {
     val collidingHazard =
       hazardsLayer.objects.find { obj -> obj is RectangleMapObject && obj.rectangle.overlaps(coll.boundingRect) }
-        ?: return
-
     coll.lastMapObjColl = collidingHazard
   }
 
@@ -93,15 +92,12 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
     actor: DungeonActor,
     mov: MovementComponent
   ) {
-    // Before checking collisions, update the bounding rect to use actor's dimensions.
-    coll.boundingRect = updateCollisionRect(actor, coll.boundingRect)
-
     val collidingMapObj = collisionLayer.objects.find {
       // We use rectangles for collision and this makes this process a bit easier.
-      if (it is RectangleMapObject) it.rectangle.overlaps(coll.boundingRect) else false
+      it is RectangleMapObject && it.rectangle.overlaps(coll.boundingRect)
     } ?: return
 
-    coll.lastMapObjColl = collidingMapObj
+    coll.lastMapObjColl = collidingMapObj as RectangleMapObject
     coll.correction = getCorrection(mov, actor, collidingMapObj)
   }
 
@@ -110,12 +106,13 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
     actor: DungeonActor,
     collidingMapObj: MapObject
   ): Vector2 {
+    val retVec = vec2()
     val correction: Vector2 = when (mov.direction) {
-      UP -> vec2(actor.x, collidingMapObj.y - (actor.height + 1))
-      RIGHT -> vec2(collidingMapObj.x - (actor.width + 1), actor.y)
-      DOWN -> vec2(actor.x, collidingMapObj.y + collidingMapObj.height + 1)
-      LEFT -> vec2(collidingMapObj.x + collidingMapObj.width + 1, actor.y)
-      else -> return Vector2.Zero
+      UP -> retVec.set(actor.x, collidingMapObj.y - (actor.height + 1))
+      RIGHT -> retVec.set(collidingMapObj.x - (actor.width + 1), actor.y)
+      DOWN -> retVec.set(actor.x, collidingMapObj.y + collidingMapObj.height + 1)
+      LEFT -> retVec.set(collidingMapObj.x + collidingMapObj.width + 1, actor.y)
+      else -> return retVec.setZero()
     }
     return if (correction != actor.pos) correction else correction.setZero()
   }

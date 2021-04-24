@@ -1,10 +1,42 @@
 package com.mygdx.game.constants
 
 import com.badlogic.gdx.assets.AssetDescriptor
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.scenes.scene2d.Action
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
+import ktx.actors.then
 
 class Assets {
+  class Constants {
+    companion object {
+      const val UNIT_SCALE = 1f
+    }
+  }
+
+  class ActorFX {
+    companion object {
+      val HIT_BLINK_ACTION: RepeatAction
+        get() = Actions.repeat(
+          5,
+          Actions.sequence(Actions.fadeOut(0.07f), Actions.fadeIn(0.07f))
+        )
+
+      val HIT_RED_ACTION: Action
+        get() = Actions.color(Color.FIREBRICK, 0.1f, Interpolation.fastSlow)
+          .then(Actions.color(Color.WHITE, 0.1f, Interpolation.fastSlow))
+
+      val DEAD_ACTION: Action
+        get() = Actions.parallel(
+          Actions.color(Color.DARK_GRAY, 1f),
+          Actions.rotateBy(90f, 0.5f)
+        )
+    }
+  }
+
   class Descriptors {
     companion object {
       val ACTOR_SHEET = AssetDescriptor(Names.ACTOR_SHEET_NAME, TextureAtlas::class.java)
@@ -14,15 +46,9 @@ class Assets {
     }
   }
 
-  class Constants {
-    companion object {
-      const val UNIT_SCALE = 1f
-    }
-  }
-
   class MapProperties {
     companion object {
-      const val DAMAGE = "Damage"
+      const val TYPE = "type"
     }
   }
 

@@ -65,7 +65,7 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
 
     if (!dir.isCardinal) return false
 
-    val stateComp = player[Components.State]
+    val stateComp = Components.State.get(player)
     stateComp?.state = IDLE
     movementComp?.direction = NONE
 

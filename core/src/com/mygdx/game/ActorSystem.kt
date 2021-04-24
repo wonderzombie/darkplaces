@@ -1,17 +1,49 @@
 package com.mygdx.game
 
+import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Engine
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.EntityListener
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.Logger
+import com.badlogic.gdx.utils.TimeUtils
+import com.mygdx.game.Components.Companion.Actor
+import com.mygdx.game.Components.Companion.State
+import com.mygdx.game.Components.Companion.Type
+import com.mygdx.game.StateComponent.State.DEAD
+import com.mygdx.game.StateComponent.State.HIT
+import com.mygdx.game.TypeComponent.Type.MONSTER
+import com.mygdx.game.TypeComponent.Type.PLAYER
+import com.mygdx.game.constants.Assets.ActorFX
 import ktx.ashley.allOf
+import ktx.math.vec2
+
+
+internal class ActorComponent : Component {
+  lateinit var actor: DungeonActor
+}
+
+class DungeonActor : Actor() {
+  private var id: String = TimeUtils.millis().toString()
+  var stateTime: Float = 0f
+
+  fun upateRect(rect: Rectangle): Rectangle =
+    rect.set(x, y, width, height)
+
+  val pos: Vector2 = vec2()
+    get() = field.set(this.x, this.y)
+}
 
 class ActorSystem : IteratingSystem(
   allOf(ActorComponent::class, StateComponent::class, TypeComponent::class).get(),
-  0
+  1
 ) {
-  private val logger: Logger = Logger("sys-actor", Logger.INFO)
+  companion object {
+    private val logger = Logger("act", Logger.INFO)
+  }
 
   override fun addedToEngine(engine: Engine?) {
     engine?.addEntityListener(ActorListener())
@@ -19,6 +51,35 @@ class ActorSystem : IteratingSystem(
   }
 
   override fun processEntity(entity: Entity?, deltaTime: Float) {
+    entity ?: return
+    val actorComp = Actor.get(entity) ?: return
+    actorComp.actor.stateTime += deltaTime
+
+    val stateComp = State.get(entity)
+    val type = Type.get(entity)
+
+    if (stateComp.stateTime == 0L) {
+      when (stateComp.state) {
+        HIT -> applyHitEffect(actorComp.actor, type)
+        DEAD -> applyDeadEffect(actorComp.actor, type)
+      }
+    }
+
+  }
+
+  private fun applyDeadEffect(actor: DungeonActor, typeComp: TypeComponent) {
+    val effect = when (typeComp.type) {
+      MONSTER -> ActorFX.DEAD_ACTION
+      else -> null
+    }
+    effect?.also { actor.addAction(it) }
+  }
+
+  private fun applyHitEffect(actor: DungeonActor, typeComp: TypeComponent) {
+    when (typeComp.type) {
+      MONSTER -> ActorFX.HIT_RED_ACTION
+      PLAYER -> ActorFX.HIT_BLINK_ACTION
+    }
   }
 
   inner class ActorListener : EntityListener {
@@ -31,3 +92,5 @@ class ActorSystem : IteratingSystem(
     }
   }
 }
+
+
