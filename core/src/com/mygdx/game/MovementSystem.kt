@@ -11,8 +11,8 @@ import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.TimeUtils
 import com.mygdx.game.Components.Companion.Actor
 import com.mygdx.game.Components.Companion.State
-import com.mygdx.game.PlayerInputListener.Direction
-import com.mygdx.game.PlayerInputListener.Direction.NONE
+import com.mygdx.game.MovementSystem.Direction
+import com.mygdx.game.MovementSystem.Direction.NONE
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.allOf
@@ -43,7 +43,8 @@ internal class MovementComponent : Component {
   var currentMovement: MoveByAction? = null
 }
 
-class MovementSystem : IteratingSystem(allOf(MovementComponent::class).get(), 1) {
+class MovementSystem :
+  IteratingSystem(allOf(MovementComponent::class).get(), EnginePriority.Movement) {
   private val logger: Logger = Logger("mov", INFO)
 
   private fun stop(mov: MovementComponent, stateComp: StateComponent) {
@@ -102,4 +103,14 @@ class MovementSystem : IteratingSystem(allOf(MovementComponent::class).get(), 1)
     coll.correction.setZero()
   }
 
+  enum class Direction(internal val x: Float, internal val y: Float) {
+    NONE(0f, 0f),
+    UP(0f, 1f),
+    RIGHT(1f, 0f),
+    DOWN(0f, -1f),
+    LEFT(-1f, 0f);
+
+    val isCardinal: Boolean
+      get() = this != NONE
+  }
 }

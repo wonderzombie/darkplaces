@@ -12,7 +12,7 @@ import com.badlogic.gdx.utils.Logger
 import com.mygdx.game.constants.Assets.Descriptors
 import ktx.app.KtxGame
 
-class TheGame : KtxGame<MainScreen>() {
+class TheGame : KtxGame<DarkPlaces>() {
   private val logger: Logger = Logger("thegame")
   internal lateinit var font: BitmapFont
   internal lateinit var assetManager: AssetManager
@@ -32,8 +32,8 @@ class TheGame : KtxGame<MainScreen>() {
     initAssets()
 
     // maybe someday we'll have more than one screen
-    addScreen(MainScreen(this))
-    setScreen(MainScreen::class.java)
+    addScreen(DarkPlaces(this))
+    setScreen(DarkPlaces::class.java)
   }
 
 

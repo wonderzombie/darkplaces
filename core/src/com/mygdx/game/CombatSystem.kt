@@ -27,7 +27,7 @@ val hazards: Map<String, Int> = mapOf(
   "spikes" to 3
 )
 
-class CombatSystem : IteratingSystem(family) {
+class CombatSystem : IteratingSystem(family, EnginePriority.Combat) {
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return
 

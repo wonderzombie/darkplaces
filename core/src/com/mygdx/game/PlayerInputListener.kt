@@ -6,11 +6,11 @@ import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.TimeUtils
-import com.mygdx.game.PlayerInputListener.Direction.DOWN
-import com.mygdx.game.PlayerInputListener.Direction.LEFT
-import com.mygdx.game.PlayerInputListener.Direction.NONE
-import com.mygdx.game.PlayerInputListener.Direction.RIGHT
-import com.mygdx.game.PlayerInputListener.Direction.UP
+import com.mygdx.game.MovementSystem.Direction.DOWN
+import com.mygdx.game.MovementSystem.Direction.LEFT
+import com.mygdx.game.MovementSystem.Direction.NONE
+import com.mygdx.game.MovementSystem.Direction.RIGHT
+import com.mygdx.game.MovementSystem.Direction.UP
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.EngineEntity
@@ -72,14 +72,4 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
     return true
   }
 
-  enum class Direction(internal val x: Float, internal val y: Float) {
-    NONE(0f, 0f),
-    UP(0f, 1f),
-    RIGHT(1f, 0f),
-    DOWN(0f, -1f),
-    LEFT(-1f, 0f);
-
-    val isCardinal: Boolean
-      get() = this != NONE
-  }
 }

@@ -28,7 +28,7 @@ import ktx.ashley.entity
 import ktx.ashley.with
 import ktx.tiled.layer
 
-class MainScreen(private val game: TheGame) : KtxScreen {
+class DarkPlaces(private val game: TheGame) : KtxScreen {
   private lateinit var playerMoveAnim: Animation<AtlasRegion>
   private lateinit var playerIdleAnim: Animation<AtlasRegion>
   private lateinit var actorAtlas: TextureAtlas

@@ -8,7 +8,7 @@ import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.allOf
 
 class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem.family) :
-  IteratingSystem(family, 1) {
+  IteratingSystem(family, EnginePriority.Render) {
 
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return

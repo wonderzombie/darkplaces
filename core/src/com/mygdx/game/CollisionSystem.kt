@@ -12,10 +12,10 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.TimeUtils
-import com.mygdx.game.PlayerInputListener.Direction.DOWN
-import com.mygdx.game.PlayerInputListener.Direction.LEFT
-import com.mygdx.game.PlayerInputListener.Direction.RIGHT
-import com.mygdx.game.PlayerInputListener.Direction.UP
+import com.mygdx.game.MovementSystem.Direction.DOWN
+import com.mygdx.game.MovementSystem.Direction.LEFT
+import com.mygdx.game.MovementSystem.Direction.RIGHT
+import com.mygdx.game.MovementSystem.Direction.UP
 import ktx.ashley.allOf
 import ktx.math.vec2
 import ktx.tiled.height
@@ -47,7 +47,7 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
       MovementComponent::class,
       CollisionComponent::class
     ).get(),
-    0
+    EnginePriority.Collision
   ) {
 
   private val tempRect = Rectangle()

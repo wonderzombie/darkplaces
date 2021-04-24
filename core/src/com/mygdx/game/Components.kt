@@ -20,18 +20,18 @@ class Components {
   }
 }
 
-internal data class PlayerComponent(
+data class PlayerComponent(
   var id: String = "P|${TimeUtils.millis()}",
   var name: String = ""
 ) : Component
 
-internal data class AnimationComponent(
+data class AnimationComponent(
   var stateTime: Float = 0f,
   var idle: Animation<AtlasRegion>? = null,
   var moving: Animation<AtlasRegion>? = null
 ) : Component
 
-internal data class TypeComponent(var type: Type = UNSET) : Component {
+data class TypeComponent(var type: Type = UNSET) : Component {
   enum class Type {
     UNSET,
     PLAYER,
@@ -39,7 +39,7 @@ internal data class TypeComponent(var type: Type = UNSET) : Component {
   }
 }
 
-internal data class StateComponent(
+data class StateComponent(
   var stateTime: Long = 0L,
 ) :
   Component {
