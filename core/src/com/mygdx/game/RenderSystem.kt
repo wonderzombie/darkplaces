@@ -26,8 +26,9 @@ class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem
     }
 
     val animWithDirection = animGroup[movComp.direction] ?: animGroup[RIGHT]
+    check(animWithDirection != null)
 
-    animWithDirection?.let {
+    animWithDirection.let {
       batch.begin()
       with(actorComp.actor) {
         batch.draw(
@@ -44,7 +45,8 @@ class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem
       allOf(
         ActorComponent::class,
         AnimationComponent::class,
-        StateComponent::class
+        StateComponent::class,
+        MovementComponent::class,
       ).get()
   }
 }

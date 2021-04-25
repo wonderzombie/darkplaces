@@ -27,6 +27,10 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
   )
 
   override fun keyDown(event: InputEvent?, keycode: Int): Boolean {
+    if (keycode == Keys.H) {
+      logger.error("debugging if you want it")
+    }
+
     logger.info("event $event - keycode $keycode")
     if (keycode !in defaultKeymap) return false
 

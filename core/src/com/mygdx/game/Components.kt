@@ -46,8 +46,11 @@ data class TypeComponent(var type: Type = UNSET, var subtype: String = "") : Com
     MONSTER;
   }
 
-  val isPlayer: Boolean = this.type == Type.PLAYER
-  val isMonster: Boolean = this.type == Type.MONSTER
+  val isPlayer: Boolean
+    get() = type == Type.PLAYER
+
+  val isMonster: Boolean
+    get() = type == Type.MONSTER
 
 }
 

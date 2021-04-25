@@ -74,6 +74,8 @@ class Assets {
       const val HERO_F_WALKRUN_R: String = "fHero_/walkRun_/rWalkRun"
 
       const val SLIME_IDLE_R: String = "slime_/idle_/rIdle"
+
+      const val SLIME_IDLE_L: String = "slime_/idle_/lIdle"
     }
   }
 }
