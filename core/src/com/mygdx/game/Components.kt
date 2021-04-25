@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Component
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.utils.TimeUtils
+import com.mygdx.game.MovementSystem.Direction
 import com.mygdx.game.TypeComponent.Type.UNSET
 import ktx.ashley.mapperFor
 
@@ -25,18 +26,29 @@ data class PlayerComponent(
   var name: String = ""
 ) : Component
 
-data class AnimationComponent(
-  var stateTime: Float = 0f,
-  var idle: Animation<AtlasRegion>? = null,
-  var moving: Animation<AtlasRegion>? = null
+data class EnemyComponent(
+  var id: String = "E|${TimeUtils.millis()}",
+  var name: String = "",
 ) : Component
 
-data class TypeComponent(var type: Type = UNSET) : Component {
+typealias AtlasAnim = Animation<AtlasRegion>
+
+data class AnimationComponent(
+  var stateTime: Float = 0f,
+  var idle: Map<Direction, AtlasAnim> = mapOf(),
+  var moving: Map<Direction, AtlasAnim> = mapOf(),
+) : Component
+
+data class TypeComponent(var type: Type = UNSET, var subtype: String = "") : Component {
   enum class Type {
     UNSET,
     PLAYER,
-    MONSTER,
+    MONSTER;
   }
+
+  val isPlayer: Boolean = this.type == Type.PLAYER
+  val isMonster: Boolean = this.type == Type.MONSTER
+
 }
 
 data class StateComponent(

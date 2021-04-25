@@ -48,6 +48,7 @@ class MovementSystem :
   private val logger: Logger = Logger("mov", INFO)
 
   private fun stop(mov: MovementComponent, stateComp: StateComponent) {
+    logger.info("stop called")
     stateComp.state = IDLE
     mov.direction = NONE
     mov.currentMovement?.finish()
@@ -73,8 +74,6 @@ class MovementSystem :
     }
 
     mov.let {
-      if (mov.direction != mov.lastDirection || stateComp.state != MOVING) return@let
-
       it.currentMovement =
         Actions.moveBy(
           it.direction.x * it.x * deltaTime,

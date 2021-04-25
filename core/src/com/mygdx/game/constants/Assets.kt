@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
@@ -14,6 +15,8 @@ class Assets {
   class Constants {
     companion object {
       const val UNIT_SCALE = 1f
+
+      val ZeroRect: Rectangle = Rectangle(0f, 0f, 0f, 0f)
     }
   }
 
@@ -41,14 +44,20 @@ class Assets {
     companion object {
       val ACTOR_SHEET = AssetDescriptor(Names.ACTOR_SHEET_NAME, TextureAtlas::class.java)
       val MAP: AssetDescriptor<TiledMap> = AssetDescriptor(Names.MAP_NAME, TiledMap::class.java)
-      val SLIME_SHEET: AssetDescriptor<TextureAtlas> =
-        AssetDescriptor(Names.SLIME_SHEET_NAME, TextureAtlas::class.java)
     }
   }
 
   class MapProperties {
+    class MapObj {
+      companion object {
+        const val TYPE = "type"
+      }
+    }
+  }
+
+  class Monsters {
     companion object {
-      const val TYPE = "type"
+      const val SLIME: String = "slime"
     }
   }
 
@@ -61,12 +70,10 @@ class Assets {
       const val HERO_F_IDLE_L: String = "fHero_/idle_/lIdle"
       const val HERO_F_IDLE_R: String = "fHero_/idle_/rIdle"
 
-      const val HERO_F_WALKRUN_L: String = "fHero_/idle_/lIdle"
+      const val HERO_F_WALKRUN_L: String = "fHero_/walkRun_/lWalkRun"
       const val HERO_F_WALKRUN_R: String = "fHero_/walkRun_/rWalkRun"
 
       const val SLIME_IDLE_R: String = "slime_/idle_/rIdle"
-
-      const val SLIME_SHEET_NAME: String = "Slime.txt"
     }
   }
 }

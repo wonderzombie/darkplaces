@@ -14,7 +14,6 @@ import com.mygdx.game.MovementSystem.Direction.UP
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.EngineEntity
-import ktx.ashley.get
 
 class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
   private val logger: Logger = Logger("input", INFO)
@@ -47,7 +46,6 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
       movementComp?.apply {
         lastMoved = TimeUtils.millis()
         direction = dir
-        lastDirection = defaultKeymap[keycode] ?: NONE
       }
       stateComp?.state = MOVING
     } ?: return false
@@ -60,14 +58,14 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
     event ?: return false
     val dir = defaultKeymap[keycode] ?: return false
 
-    val movementComp = player[Components.Movement]
-    if (defaultKeymap[keycode] != movementComp?.direction) return false
+    val movementComp = player.movComp()
+    // If this isn't the direction we're moving in or if it's not a direction,
+    // don't change any state. This probably needs to be tweaked to handle
+    // dueling keys sensibly, checking some key inputs (get it) directly.
+    if (dir != movementComp?.direction || !dir.isCardinal) return false
 
-    if (!dir.isCardinal) return false
-
-    val stateComp = Components.State.get(player)
-    stateComp?.state = IDLE
-    movementComp?.direction = NONE
+    player.stateComp()?.state = IDLE
+    movementComp.direction = NONE
 
     return true
   }

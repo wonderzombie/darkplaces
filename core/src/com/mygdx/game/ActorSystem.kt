@@ -53,7 +53,7 @@ class DungeonActor : Actor() {
 
 class ActorSystem : IteratingSystem(
   allOf(ActorComponent::class, StateComponent::class, TypeComponent::class).get(),
-  1
+  EnginePriority.Actor
 ) {
   companion object {
     private val logger = Logger("act", Logger.INFO)

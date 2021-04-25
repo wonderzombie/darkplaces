@@ -7,30 +7,43 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
+import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.mygdx.game.MovementSystem.Direction
+import com.mygdx.game.MovementSystem.Direction.LEFT
+import com.mygdx.game.MovementSystem.Direction.RIGHT
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.TypeComponent.Type.MONSTER
 import com.mygdx.game.TypeComponent.Type.PLAYER
 import com.mygdx.game.constants.AppConstants
 import com.mygdx.game.constants.Assets
 import com.mygdx.game.constants.Assets.Descriptors
+import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
+import com.mygdx.game.constants.Assets.Monsters
 import com.mygdx.game.constants.Assets.Names
 import ktx.app.KtxScreen
 import ktx.ashley.add
 import ktx.ashley.entity
 import ktx.ashley.with
+import ktx.math.vec2
 import ktx.tiled.layer
+import ktx.tiled.x
+import ktx.tiled.y
 
 class DarkPlaces(private val game: TheGame) : KtxScreen {
-  private lateinit var playerMoveAnim: Animation<AtlasRegion>
-  private lateinit var playerIdleAnim: Animation<AtlasRegion>
+  private lateinit var playerIdleAnimL: Animation<AtlasRegion>
+  private lateinit var playerIdleAnimR: Animation<AtlasRegion>
+  private lateinit var playerMoveAnimL: Animation<AtlasRegion>
+  private lateinit var playerMoveAnimR: Animation<AtlasRegion>
+
   private lateinit var actorAtlas: TextureAtlas
   private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
   private lateinit var tiledMap: TiledMap
@@ -66,12 +79,20 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     Gdx.input.inputProcessor = stage
     stage.isDebugAll = true
 
+    val playerSpawn = tiledMap.layer("Transitions").objects.find {
+      it?.properties?.get(
+        TYPE,
+        String::class.java
+      ) == "Spawn" && it.name == "Player"
+    }?.let { vec2(it.x, it.y) } ?: Vector2.Zero
+
+    val slimeSpawns =
+      tiledMap.layer("Transitions").objects.filter { it.name.toLowerCase() == Monsters.SLIME }
+
     initEngine(game.engine)
     initAnimations()
-    initPlayer(stage)
-    initEntities()
-
-    game.engine.addSystem(CollisionSystem(tiledMap.layer("Walls"), tiledMap.layer("Hazards")))
+    initPlayer(stage, playerSpawn.x, playerSpawn.y)
+    initEntities(slimeSpawns)
   }
 
   private fun initEngine(engine: PooledEngine) {
@@ -107,10 +128,15 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private fun initAnimations() {
     val frames = actorAtlas.findRegions(Names.SLIME_IDLE_R)
     slimeAnim = Animation(0.9f, frames, LOOP)
-    playerIdleAnim = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_L), LOOP)
-    playerIdleAnim = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_R), LOOP)
-    playerMoveAnim = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_R), LOOP)
-    playerMoveAnim = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_L), LOOP)
+    playerIdleAnimL = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_L), LOOP)
+    playerIdleAnimR = Animation(0.3f, actorAtlas.findRegions(Names.HERO_F_IDLE_R), LOOP)
+    playerMoveAnimR = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_R), LOOP)
+    playerMoveAnimL = Animation(0.2f, actorAtlas.findRegions(Names.HERO_F_WALKRUN_L), LOOP)
+
+    check(playerMoveAnimL.keyFrames.isNotEmpty())
+    check(playerMoveAnimR.keyFrames.isNotEmpty())
+    check(playerIdleAnimL.keyFrames.isNotEmpty())
+    check(playerIdleAnimR.keyFrames.isNotEmpty())
   }
 
   private fun Actor.setBounds(textureRegion: AtlasRegion?): Actor {
@@ -136,7 +162,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
         with<ActorComponent> {
           actor = newActor
           with(actor) {
-            setBounds(playerIdleAnim.keyFrames.first())
+            setBounds(playerIdleAnimL.keyFrames.first())
             setPosition(initX, initY)
             addListener(PlayerInputListener(this@entity))
           }
@@ -145,8 +171,15 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
         }
 
         with<AnimationComponent> {
-          idle = playerIdleAnim
-          moving = playerMoveAnim
+          idle = mapOf(
+            LEFT to playerIdleAnimL,
+            RIGHT to playerIdleAnimR
+          )
+
+          moving = mapOf(
+            LEFT to playerMoveAnimL,
+            RIGHT to playerMoveAnimR,
+          )
         }
 
         with<TypeComponent> { type = PLAYER }
@@ -169,20 +202,27 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     }
   }
 
-  private fun initEntities() {
+  private fun initEntities(slimeSpawns: List<MapObject>) {
     logger.info("initEntities")
-    val firstFrame = slimeAnim.keyFrames.first()
+
     game.engine.add {
-      // SLIME
-      newSlime(16f * 3, 16f * 3, firstFrame)
-      newSlime(16f * 10, 16f * 8, firstFrame)
-    }.also { logger.info("entities: ${game.engine.entities}") }
+      slimeSpawns.onEach { spawn ->
+        newSlime(spawn.x, spawn.y, slimeAnim.keyFrames.first())
+      }
+    }
   }
 
   private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) = game.engine.entity {
     val newActor = DungeonActor()
     with<AnimationComponent> {
-      idle = slimeAnim
+      idle = mapOf(
+        LEFT to slimeAnim,
+        RIGHT to slimeAnim,
+      )
+      moving = mapOf(
+        LEFT to slimeAnim,
+        RIGHT to slimeAnim,
+      )
     }
 
     with<ActorComponent> {
@@ -192,7 +232,11 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       stage.addActor(actor)
     }
 
+    with<CombatComponent> {
+      health = 5
+    }
+
     with<StateComponent> { state = IDLE }
-    with<TypeComponent> { type = MONSTER }
+    with<TypeComponent> { type = MONSTER; subtype = "slime" }
   }
 }

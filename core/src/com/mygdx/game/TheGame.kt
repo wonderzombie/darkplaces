@@ -9,11 +9,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.utils.Logger
+import com.badlogic.gdx.utils.Logger.INFO
 import com.mygdx.game.constants.Assets.Descriptors
 import ktx.app.KtxGame
 
 class TheGame : KtxGame<DarkPlaces>() {
-  private val logger: Logger = Logger("thegame")
+  private val logger: Logger = Logger("thegame", INFO)
   internal lateinit var font: BitmapFont
   internal lateinit var assetManager: AssetManager
   internal lateinit var batch: SpriteBatch
@@ -44,7 +45,6 @@ class TheGame : KtxGame<DarkPlaces>() {
 
     assetManager.load(Descriptors.MAP)
     assetManager.load(Descriptors.ACTOR_SHEET)
-    assetManager.load(Descriptors.SLIME_SHEET)
   }
 
   private fun initEngine(engine: PooledEngine) {

@@ -15,7 +15,7 @@ import com.mygdx.game.Components.Companion.Type
 import com.mygdx.game.StateComponent.State.DEAD
 import com.mygdx.game.StateComponent.State.HIT
 import com.mygdx.game.TypeComponent.Type.MONSTER
-import com.mygdx.game.constants.Assets.MapProperties.Companion.TYPE
+import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
 import ktx.ashley.allOf
 
 val family: Family =
