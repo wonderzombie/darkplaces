@@ -2,6 +2,7 @@ package com.mygdx.game.constants
 
 import com.badlogic.gdx.assets.AssetDescriptor
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.math.Interpolation
@@ -42,6 +43,7 @@ class Assets {
 
   class Descriptors {
     companion object {
+      val PC_SR_FONT = AssetDescriptor(Font.PC_SR, BitmapFont::class.java)
       val ACTOR_SHEET = AssetDescriptor(Names.ACTOR_SHEET_NAME, TextureAtlas::class.java)
       val MAP: AssetDescriptor<TiledMap> = AssetDescriptor(Names.MAP_NAME, TiledMap::class.java)
     }
@@ -77,5 +79,12 @@ class Assets {
 
       const val SLIME_IDLE_L: String = "slime_/idle_/lIdle"
     }
+  }
+
+  class Font {
+    companion object {
+      const val PC_SR: String = "pcsenior.ttf"
+    }
+
   }
 }

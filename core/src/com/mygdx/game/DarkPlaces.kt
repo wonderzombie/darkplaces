@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.maps.MapObject
@@ -14,18 +15,25 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.kotcrab.vis.ui.VisUI
+import com.kotcrab.vis.ui.widget.VisLabel
+import com.kotcrab.vis.ui.widget.VisTable
 import com.mygdx.game.MovementSystem.Direction.LEFT
 import com.mygdx.game.MovementSystem.Direction.RIGHT
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.TypeComponent.Type.MONSTER
 import com.mygdx.game.TypeComponent.Type.PLAYER
 import com.mygdx.game.constants.AppConstants
+import com.mygdx.game.constants.AppConstants.Debug
 import com.mygdx.game.constants.Assets
 import com.mygdx.game.constants.Assets.Descriptors
+import com.mygdx.game.constants.Assets.Font
 import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
 import com.mygdx.game.constants.Assets.Monsters
 import com.mygdx.game.constants.Assets.Names
@@ -35,12 +43,24 @@ import ktx.ashley.entity
 import ktx.ashley.with
 import ktx.assets.DisposableContainer
 import ktx.math.vec2
+import ktx.scene2d.scene2d
+import ktx.scene2d.vis.visLabel
 import ktx.tiled.layer
 import ktx.tiled.x
 import ktx.tiled.y
 
 class DarkPlaces(private val game: TheGame) : KtxScreen {
-  val disposableContainer: DisposableContainer = DisposableContainer()
+  private lateinit var debugStuff: VisLabel
+  private val disposableContainer: DisposableContainer = DisposableContainer()
+
+  private val orthoCamera: OrthographicCamera = OrthographicCamera()
+  private val viewport: ExtendViewport = ExtendViewport(
+    AppConstants.DEFAULT_VIEW_WIDTH / 2,
+    AppConstants.DEFAULT_VIEW_HEIGHT / 2,
+    orthoCamera
+  )
+  private val stage: Stage = Stage(viewport)
+  private val logger: Logger = Logger("darkplaces", INFO)
 
   private lateinit var slimeAnimR: Animation<AtlasRegion>
   private lateinit var slimeAnimL: Animation<AtlasRegion>
@@ -53,15 +73,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private lateinit var actorAtlas: TextureAtlas
   private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
   private lateinit var tiledMap: TiledMap
-
-  private val orthoCamera: OrthographicCamera = OrthographicCamera()
-  private val viewport: ExtendViewport = ExtendViewport(
-    AppConstants.DEFAULT_VIEW_WIDTH / 2,
-    AppConstants.DEFAULT_VIEW_HEIGHT / 2,
-    orthoCamera
-  )
-  private val stage: Stage = Stage(viewport)
-  private val logger: Logger = Logger("main", INFO)
+  private lateinit var screenTable: Table
 
   override fun show() {
     game.assetManager.finishLoading()
@@ -100,6 +112,29 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     initAnimations()
     initPlayer(stage, playerSpawn.x, playerSpawn.y)
     initEntities(slimeSpawns)
+
+    initUi()
+  }
+
+  private fun initUi() {
+    game.assetManager.finishLoadingAsset<BitmapFont>(Font.PC_SR)
+    game.pcSrFont = game.assetManager.get(Font.PC_SR)
+
+    VisUI.load()
+
+    debugStuff = scene2d.visLabel(AppConstants.Debug.mouseDebugStr).apply {
+      style.font = game.pcSrFont
+      setFontScale(0.75f)
+    }
+
+    screenTable = VisTable().apply {
+      setFillParent(true)
+      align(Align.topLeft)
+      debug = true
+      add(debugStuff)
+    }
+    stage.addActor(screenTable)
+
   }
 
   private fun initEngine(engine: PooledEngine) {
@@ -112,10 +147,13 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     tiledMap.dispose()
     tiledMapRenderer.dispose()
     actorAtlas.dispose()
+    VisUI.load()
   }
 
   override fun render(delta: Float) {
     ScreenUtils.clear(0.2f, 0.2f, 0.2f, 1f)
+
+    debugStuff.setText(Debug.mouseDebugStr)
 
     tiledMapRenderer.render()
     game.engine.update(delta)

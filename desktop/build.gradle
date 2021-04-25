@@ -2,7 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 sourceCompatibility = 1.7
-sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.java.srcDirs = ["src/"]
 sourceSets.main.resources.srcDirs = ["../core/assets"]
 
 project.ext.mainClassName = "com.mygdx.game.desktop.DesktopLauncher"
@@ -27,6 +27,7 @@ task debug(dependsOn: classes, type: JavaExec) {
 
 dependencies {
     testImplementation 'junit:junit:4.13'
+    implementation 'io.github.libktx:ktx-app:1.10.0-b1'
 }
 
 task dist(type: Jar) {

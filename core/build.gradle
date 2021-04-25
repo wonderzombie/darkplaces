@@ -14,22 +14,31 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'com.google.truth:truth:1.1.2'
+    implementation 'io.github.libktx:ktx-vis-style:1.10.0-b1'
+    implementation 'io.github.libktx:ktx-vis:1.10.0-b1'
+    implementation 'com.kotcrab.vis:vis-ui:1.4.11'
 }
 dependencies {
     ext {
         // Update this version to match the latest KTX release:
         ktxVersion = '1.10.0-b1'
     }
-    compile "io.github.libktx:ktx-app:$ktxVersion"
-    compile "io.github.libktx:ktx-actors:$ktxVersion"
-    compile "io.github.libktx:ktx-assets:$ktxVersion"
-    compile "io.github.libktx:ktx-ashley:$ktxVersion"
-    compile "io.github.libktx:ktx-graphics:$ktxVersion"
-    compile "io.github.libktx:ktx-math:$ktxVersion"
-    compile "io.github.libktx:ktx-log:$ktxVersion"
-    compile "io.github.libktx:ktx-scene2d:$ktxVersion"
-    compile "io.github.libktx:ktx-tiled:$ktxVersion"
-    compile "io.github.libktx:ktx-collections:$ktxVersion"
+    implementation "io.github.libktx:ktx-app:$ktxVersion"
+    implementation "io.github.libktx:ktx-actors:$ktxVersion"
+    implementation "io.github.libktx:ktx-assets:$ktxVersion"
+    implementation "io.github.libktx:ktx-ashley:$ktxVersion"
+    implementation "io.github.libktx:ktx-freetype:$ktxVersion"
+    implementation "io.github.libktx:ktx-graphics:$ktxVersion"
+    implementation "io.github.libktx:ktx-math:$ktxVersion"
+    implementation "io.github.libktx:ktx-log:$ktxVersion"
+    implementation "io.github.libktx:ktx-scene2d:$ktxVersion"
+    implementation "io.github.libktx:ktx-tiled:$ktxVersion"
+    implementation "io.github.libktx:ktx-collections:$ktxVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'com.google.truth:truth:1.1.2'
+    implementation 'io.github.libktx:ktx-vis-style:1.10.0-b1'
+    implementation 'io.github.libktx:ktx-vis:1.10.0-b1'
+    implementation 'com.kotcrab.vis:vis-ui:1.4.11'
 }
 compileKotlin {
     kotlinOptions {

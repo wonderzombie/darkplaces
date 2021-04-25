@@ -39,6 +39,28 @@ allprojects {
     }
 }
 
+dependencies {
+    ext {
+        // Update this version to match the latest KTX release:
+        ktxVersion = '1.10.0-b1'
+    }
+    implementation "io.github.libktx:ktx-app:$ktxVersion"
+    implementation "io.github.libktx:ktx-actors:$ktxVersion"
+    implementation "io.github.libktx:ktx-assets:$ktxVersion"
+    implementation "io.github.libktx:ktx-ashley:$ktxVersion"
+    implementation "io.github.libktx:ktx-graphics:$ktxVersion"
+    implementation "io.github.libktx:ktx-math:$ktxVersion"
+    implementation "io.github.libktx:ktx-log:$ktxVersion"
+    implementation "io.github.libktx:ktx-scene2d:$ktxVersion"
+    implementation "io.github.libktx:ktx-tiled:$ktxVersion"
+    implementation "io.github.libktx:ktx-collections:$ktxVersion"
+    implementation "io.github.libktx:ktx-vis:$ktxVersion"
+    implementation "io.github.libktx:ktx-vis-style:$ktxVersion"
+    implementation "io.github.libktx:ktx-freetype:$ktxVersion"
+    implementation 'com.kotcrab.vis:vis-ui:1.4.11'
+}
+
+
 project(":desktop") {
     apply plugin: "java-library"
 
@@ -70,6 +92,7 @@ project(":core") {
         implementation "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
     }
 }
+
 repositories {
     mavenCentral()
 }
@@ -87,5 +110,4 @@ compileTestKotlin {
 test {
     useJUnitPlatform()
     include "**/*.Test.kt"
-
 }
