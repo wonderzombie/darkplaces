@@ -76,6 +76,7 @@ class ActorSystem : IteratingSystem(
       when (stateComp.state) {
         HIT -> applyHitEffect(actorComp.actor, type)
         DEAD -> applyDeadEffect(actorComp.actor, type)
+        else -> return
       }
     }
   }

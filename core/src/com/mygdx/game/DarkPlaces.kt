@@ -23,7 +23,6 @@ import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.VisLabel
-import com.kotcrab.vis.ui.widget.VisTable
 import com.mygdx.game.MovementSystem.Direction.LEFT
 import com.mygdx.game.MovementSystem.Direction.RIGHT
 import com.mygdx.game.StateComponent.State.IDLE
@@ -45,12 +44,12 @@ import ktx.assets.DisposableContainer
 import ktx.math.vec2
 import ktx.scene2d.scene2d
 import ktx.scene2d.vis.visLabel
+import ktx.scene2d.vis.visTable
 import ktx.tiled.layer
 import ktx.tiled.x
 import ktx.tiled.y
 
 class DarkPlaces(private val game: TheGame) : KtxScreen {
-  private lateinit var debugStuff: VisLabel
   private val disposableContainer: DisposableContainer = DisposableContainer()
 
   private val orthoCamera: OrthographicCamera = OrthographicCamera()
@@ -62,6 +61,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private val stage: Stage = Stage(viewport)
   private val logger: Logger = Logger("darkplaces", INFO)
 
+  // animations begging for another home
   private lateinit var slimeAnimR: Animation<AtlasRegion>
   private lateinit var slimeAnimL: Animation<AtlasRegion>
 
@@ -70,9 +70,12 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private lateinit var playerMoveAnimL: Animation<AtlasRegion>
   private lateinit var playerMoveAnimR: Animation<AtlasRegion>
 
+  // resources
   private lateinit var actorAtlas: TextureAtlas
   private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
   private lateinit var tiledMap: TiledMap
+
+  // scene2d
   private lateinit var screenTable: Table
 
   override fun show() {
@@ -122,19 +125,21 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
 
     VisUI.load()
 
-    debugStuff = scene2d.visLabel(AppConstants.Debug.mouseDebugStr).apply {
-      style.font = game.pcSrFont
-      setFontScale(0.75f)
-    }
+    screenTable =
+      scene2d {
+        visTable {
+          setFillParent(true)
 
-    screenTable = VisTable().apply {
-      setFillParent(true)
-      align(Align.topLeft)
-      debug = true
-      add(debugStuff)
-    }
+          name = "debugTable"
+          debug = true
+          align(Align.topLeft)
+          visLabel(Debug.mouseDebugStr) {
+            style.font = game.pcSrFont
+//            setFontScale(0.75f)
+          }
+        }
+      }
     stage.addActor(screenTable)
-
   }
 
   private fun initEngine(engine: PooledEngine) {
@@ -143,17 +148,15 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   }
 
   override fun dispose() {
-    stage.dispose()
-    tiledMap.dispose()
-    tiledMapRenderer.dispose()
-    actorAtlas.dispose()
-    VisUI.load()
+    disposableContainer.dispose()
+    VisUI.dispose()
   }
 
   override fun render(delta: Float) {
     ScreenUtils.clear(0.2f, 0.2f, 0.2f, 1f)
 
-    debugStuff.setText(Debug.mouseDebugStr)
+    val uiActor = screenTable.children.firstOrNull()
+    uiActor.apply { if (this is VisLabel) setText(Debug.mouseDebugStr) }
 
     tiledMapRenderer.render()
     game.engine.update(delta)
@@ -162,6 +165,10 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       act(delta)
       draw()
     }
+
+    game.batch.begin()
+    game.pcSrFont.draw(game.batch, "Mouse: ${Gdx.input.x},${Gdx.input.y}", 50f, 10f)
+    game.batch.end()
   }
 
   override fun resize(width: Int, height: Int) {
@@ -268,40 +275,41 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     })
   }
 
-  private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) = game.engine.entity {
-    logger.info("new slime @ $stageX,$stageY")
-    val newActor = DungeonActor()
-    with<AnimationComponent> {
-      idle = mapOf(
-        LEFT to slimeAnimR,
-        RIGHT to slimeAnimR,
-      )
-      moving = mapOf(
-        LEFT to slimeAnimR,
-        RIGHT to slimeAnimR,
-      )
+  private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) =
+    game.engine.entity {
+      logger.info("new slime @ $stageX,$stageY")
+      val newActor = DungeonActor()
+      with<AnimationComponent> {
+        idle = mapOf(
+          LEFT to slimeAnimR,
+          RIGHT to slimeAnimR,
+        )
+        moving = mapOf(
+          LEFT to slimeAnimR,
+          RIGHT to slimeAnimR,
+        )
+      }
+
+      with<ActorComponent> {
+        this.actor = newActor
+        this.actor.setBounds(firstFrame)
+        this.actor.setPosition(stageX, stageY)
+        stage.addActor(this.actor)
+      }
+
+      with<CollisionComponent> {
+        this.boundingRect = newActor.upateRect(boundingRect)
+      }
+
+      with<CombatComponent> {
+        health = 5
+      }
+
+      with<MovementComponent> {}
+
+      with<StateComponent> { state = IDLE }
+      with<TypeComponent> { type = MONSTER; subtype = "slime" }
+
+      with<EnemyComponent> { this.name = "slime @ orig ${stageX},${stageY}" }
     }
-
-    with<ActorComponent> {
-      this.actor = newActor
-      this.actor.setBounds(firstFrame)
-      this.actor.setPosition(stageX, stageY)
-      stage.addActor(this.actor)
-    }
-
-    with<CollisionComponent> {
-      this.boundingRect = newActor.upateRect(boundingRect)
-    }
-
-    with<CombatComponent> {
-      health = 5
-    }
-
-    with<MovementComponent> {}
-
-    with<StateComponent> { state = IDLE }
-    with<TypeComponent> { type = MONSTER; subtype = "slime" }
-
-    with<EnemyComponent> { this.name = "slime @ orig ${stageX},${stageY}" }
-  }
 }

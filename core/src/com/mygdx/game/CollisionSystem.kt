@@ -76,8 +76,7 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
 
     val mov = entity.movComp() ?: return
     val coll = entity.collComp() ?: return
-    val actor = entity.actorComp()?.actor ?: return
-    val typeComp = entity.typeComp() ?: return
+    val actor = entity.actor() ?: return
 
     coll.boundingRect = updateCollisionRect(actor, coll.boundingRect)
 
@@ -86,7 +85,7 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
     handleActorCollisions(entity, coll, actor)
 
     if (TimeUtils.timeSinceMillis(lastLoggedProcessEntity) <= 3000) return
-    logger.info("any collisions? ${coll.correction.isZero}")
+    logger.info("object collisions? ${!coll.correction.isZero}")
     lastLoggedProcessEntity = TimeUtils.millis()
   }
 
@@ -103,15 +102,13 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
 
     if (xCollEntities.isEmpty() && yCollEntities.isEmpty()) return
 
-    val allegedCollisions = xCollEntities.filter(yCollEntities::contains)
-
+    val testedCollision = xCollEntities.filter(yCollEntities::contains)
+      .filter { it?.collComp()?.boundingRect?.overlaps(coll.boundingRect) == true }
 
     if (TimeUtils.timeSinceMillis(lastLoggedActorColl) >= 1500) return
 
     logger.info(
-      "actor collisions? ${allegedCollisions.size} - ${
-        allegedCollisions.map { it.typeComp()?.type }.joinToString("|")
-      }"
+      "actor collisions? ${testedCollision.size} - ${testedCollision}"
     )
 
     this.lastLoggedActorColl = TimeUtils.millis()

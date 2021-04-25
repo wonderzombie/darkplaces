@@ -31,12 +31,10 @@ internal class MovementComponent : Component {
   var lastMoved: Long = 0L
   var lastDirection: Direction = Direction.NONE
 
-  // The distance this entity should move.
+  // The distance this entity should move per frame (stage coordinates).
   var x = 0f
   var y = 0f
 
-  // How quickly that move should happen.
-  var duration = 0.01f
   var interp: Interpolation = Interpolation.fastSlow
 
   // If the actor has a movement action, it may be here.
@@ -48,7 +46,7 @@ class MovementSystem :
   private val logger: Logger = Logger("mov", INFO)
 
   private fun stop(mov: MovementComponent, stateComp: StateComponent) {
-    logger.info("stop called")
+    logger.info("movement halted")
     stateComp.state = IDLE
     mov.direction = NONE
     mov.currentMovement?.finish()
@@ -58,7 +56,7 @@ class MovementSystem :
     entity ?: return
     if (Actor !in entity || State !in entity) return
 
-    val actor = entity.actorComp()?.actor ?: return
+    val actor = entity.actor() ?: return
     val mov = entity.movComp() ?: return
     val stateComp = entity.stateComp() ?: return
     val coll = entity.collComp()
