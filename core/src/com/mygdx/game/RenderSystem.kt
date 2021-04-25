@@ -16,7 +16,6 @@ class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem
     val actorComp = Components.Actor.get(entity) ?: return
     val stateComp = Components.State.get(entity) ?: return
     val animComp = Components.Animation.get(entity) ?: return
-    val movComp = Components.Movement.get(entity) ?: return
 
     animComp.stateTime += deltaTime
 
@@ -25,8 +24,11 @@ class RenderSystem(private val batch: SpriteBatch, family: Family = RenderSystem
       else -> animComp.idle
     }
 
-    val animWithDirection = animGroup[movComp.direction] ?: animGroup[RIGHT]
-    check(animWithDirection != null)
+    val animWithDirection: AtlasAnim? = Components.Movement.get(entity)?.let {
+      animGroup[it.direction] ?: animGroup[RIGHT]
+    } ?: animComp.idle.values.firstOrNull()
+
+    check(animWithDirection != null) { "unable to find animation for entity $entity" }
 
     animWithDirection.let {
       batch.begin()
