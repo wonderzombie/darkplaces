@@ -2,12 +2,14 @@ package com.mygdx.game
 
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
@@ -15,6 +17,7 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Logger
@@ -45,6 +48,8 @@ import ktx.math.vec2
 import ktx.scene2d.scene2d
 import ktx.scene2d.vis.visLabel
 import ktx.scene2d.vis.visTable
+import ktx.style.label
+import ktx.style.skin
 import ktx.tiled.layer
 import ktx.tiled.x
 import ktx.tiled.y
@@ -119,6 +124,12 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     initUi()
   }
 
+  private fun getFancyFont(): BitmapFont? {
+    val generator = FreeTypeFontGenerator(Gdx.files.internal(Font.PC_SR))
+    val parameter = FreeTypeFontGenerator.FreeTypeFontParameter()
+    return generator.generateFont(parameter).also { generator.dispose() }
+  }
+
   private fun initUi() {
     game.assetManager.finishLoadingAsset<BitmapFont>(Font.PC_SR)
     game.pcSrFont = game.assetManager.get(Font.PC_SR)
@@ -129,13 +140,11 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       scene2d {
         visTable {
           setFillParent(true)
-
           name = "debugTable"
           debug = true
           align(Align.topLeft)
           visLabel(Debug.mouseDebugStr) {
-            style.font = game.pcSrFont
-//            setFontScale(0.75f)
+            style = LabelStyle(getFancyFont(), Color.WHITE)
           }
         }
       }
