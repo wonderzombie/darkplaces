@@ -1,8 +1,8 @@
 package com.mygdx.game
 
+import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
@@ -17,7 +17,6 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Logger
@@ -40,16 +39,14 @@ import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
 import com.mygdx.game.constants.Assets.Monsters
 import com.mygdx.game.constants.Assets.Names
 import ktx.app.KtxScreen
-import ktx.ashley.add
 import ktx.ashley.entity
+import ktx.ashley.get
 import ktx.ashley.with
 import ktx.assets.DisposableContainer
 import ktx.math.vec2
 import ktx.scene2d.scene2d
 import ktx.scene2d.vis.visLabel
 import ktx.scene2d.vis.visTable
-import ktx.style.label
-import ktx.style.skin
 import ktx.tiled.layer
 import ktx.tiled.x
 import ktx.tiled.y
@@ -65,6 +62,8 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   )
   private val stage: Stage = Stage(viewport)
   private val logger: Logger = Logger("darkplaces", INFO)
+
+  private lateinit var playerEntity: Entity
 
   // animations begging for another home
   private lateinit var slimeAnimR: Animation<AtlasRegion>
@@ -127,6 +126,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private fun getFancyFont(): BitmapFont? {
     val generator = FreeTypeFontGenerator(Gdx.files.internal(Font.PC_SR))
     val parameter = FreeTypeFontGenerator.FreeTypeFontParameter()
+    parameter.size = 10
     return generator.generateFont(parameter).also { generator.dispose() }
   }
 
@@ -142,9 +142,9 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
           setFillParent(true)
           name = "debugTable"
           debug = true
-          align(Align.topLeft)
+          align(Align.bottomLeft)
           visLabel(Debug.mouseDebugStr) {
-            style = LabelStyle(getFancyFont(), Color.WHITE)
+            setFontScale(0.7f)
           }
         }
       }
@@ -176,7 +176,11 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     }
 
     game.batch.begin()
-    game.pcSrFont.draw(game.batch, "Mouse: ${Gdx.input.x},${Gdx.input.y}", 50f, 10f)
+    game.pcSrFont.draw(
+      game.batch, "HEALTH: ${
+        playerEntity[Components.Combat]?.health
+      }", 2f, viewport.worldHeight
+    )
     game.batch.end()
   }
 
@@ -187,13 +191,13 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   }
 
   private fun initAnimations() {
-    slimeAnimR = checkedGetAnim(Names.SLIME_IDLE_R, 0.7f)
-    slimeAnimL = checkedGetAnim(Names.SLIME_IDLE_L, 0.7f)
+    slimeAnimR = checkedGetAnim(Names.SLIME_IDLE_R, 0.4f)
+    slimeAnimL = checkedGetAnim(Names.SLIME_IDLE_L, 0.4f)
 
-    playerIdleAnimL = checkedGetAnim(Names.HERO_F_IDLE_L, 0.3f)
-    playerIdleAnimR = checkedGetAnim(Names.HERO_F_IDLE_R, 0.3f)
-    playerMoveAnimR = checkedGetAnim(Names.HERO_F_WALKRUN_R, 0.2f)
-    playerMoveAnimL = checkedGetAnim(Names.HERO_F_WALKRUN_L, 0.2f)
+    playerIdleAnimL = checkedGetAnim(Names.HERO_F_IDLE_L, 0.2f)
+    playerIdleAnimR = checkedGetAnim(Names.HERO_F_IDLE_R, 0.2f)
+    playerMoveAnimR = checkedGetAnim(Names.HERO_F_WALKRUN_R, 0.17f)
+    playerMoveAnimL = checkedGetAnim(Names.HERO_F_WALKRUN_L, 0.17f)
   }
 
   private fun checkedGetAnim(name: String, frameDuration: Float) =
@@ -222,53 +226,52 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
 
   private fun initPlayer(stage: Stage, initX: Float = 16f * 3, initY: Float = 16f * 3) {
     val newActor = DungeonActor()
-    game.engine.add {
-      entity {
-        with<PlayerComponent> {
-          name = "HERO"
-        }
 
-        with<ActorComponent> {
-          actor = newActor
-          with(actor) {
-            setBounds(playerIdleAnimL.keyFrames.first())
-            setPosition(initX, initY)
-            addListener(PlayerInputListener(this@entity))
-          }
-          stage.addActor(newActor)
-          stage.keyboardFocus = newActor
-        }
-
-        with<AnimationComponent> {
-          idle = mapOf(
-            LEFT to playerIdleAnimL,
-            RIGHT to playerIdleAnimR
-          )
-
-          moving = mapOf(
-            LEFT to playerMoveAnimL,
-            RIGHT to playerMoveAnimR,
-          )
-        }
-
-        with<TypeComponent> { type = PLAYER }
-        with<StateComponent> { state = IDLE }
-
-        with<MovementComponent> {
-          x = 40f
-          y = 40f
-          interp = Interpolation.fastSlow
-        }
-
-        with<CollisionComponent> {
-          newActor.upateRect(boundingRect)
-        }
-
-        with<CombatComponent> {
-          health = 10
-        }
+    game.engine.entity {
+      with<PlayerComponent> {
+        name = "HERO"
       }
-    }
+
+      with<ActorComponent> {
+        actor = newActor
+        with(actor) {
+          setBounds(playerIdleAnimL.keyFrames.first())
+          setPosition(initX, initY)
+          addListener(PlayerInputListener(this@entity))
+        }
+        stage.addActor(newActor)
+        stage.keyboardFocus = newActor
+      }
+
+      with<AnimationComponent> {
+        idle = mapOf(
+          LEFT to playerIdleAnimL,
+          RIGHT to playerIdleAnimR
+        )
+
+        moving = mapOf(
+          LEFT to playerMoveAnimL,
+          RIGHT to playerMoveAnimR,
+        )
+      }
+
+      with<TypeComponent> { type = PLAYER }
+      with<StateComponent> { state = IDLE }
+
+      with<MovementComponent> {
+        x = 40f
+        y = 40f
+        interp = Interpolation.fastSlow
+      }
+
+      with<CollisionComponent> {
+        newActor.upateRect(boundingRect)
+      }
+
+      with<CombatComponent> {
+        health = 10
+      }
+    }.also { playerEntity = it }
   }
 
   private fun initEntities(slimeSpawns: List<MapObject>) {

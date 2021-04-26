@@ -1,7 +1,5 @@
 buildscript {
     ext.kotlin_version = '1.4.32'
-
-
     repositories {
         mavenLocal()
         mavenCentral()
@@ -24,9 +22,9 @@ allprojects {
         appName = "dark-places"
         gdxVersion = '1.10.0'
         roboVMVersion = '2.3.12'
-        box2DLightsVersion = '1.5'
+//        box2DLightsVersion = '1.5'
         ashleyVersion = '1.7.4'
-        aiVersion = '1.8.2'
+//        aiVersion = '1.8.2'
         gdxControllersVersion = '2.1.0'
     }
 
@@ -43,21 +41,23 @@ dependencies {
     ext {
         // Update this version to match the latest KTX release:
         ktxVersion = '1.10.0-b1'
+        visVersion = '1.4.11'
     }
-    implementation "io.github.libktx:ktx-app:$ktxVersion"
     implementation "io.github.libktx:ktx-actors:$ktxVersion"
-    implementation "io.github.libktx:ktx-assets:$ktxVersion"
+    implementation "io.github.libktx:ktx-app:$ktxVersion"
     implementation "io.github.libktx:ktx-ashley:$ktxVersion"
+    implementation "io.github.libktx:ktx-assets:$ktxVersion"
+    implementation "io.github.libktx:ktx-collections:$ktxVersion"
+    implementation "io.github.libktx:ktx-freetype:$ktxVersion"
     implementation "io.github.libktx:ktx-graphics:$ktxVersion"
-    implementation "io.github.libktx:ktx-math:$ktxVersion"
     implementation "io.github.libktx:ktx-log:$ktxVersion"
+    implementation "io.github.libktx:ktx-math:$ktxVersion"
     implementation "io.github.libktx:ktx-scene2d:$ktxVersion"
     implementation "io.github.libktx:ktx-tiled:$ktxVersion"
-    implementation "io.github.libktx:ktx-collections:$ktxVersion"
-    implementation "io.github.libktx:ktx-vis:$ktxVersion"
     implementation "io.github.libktx:ktx-vis-style:$ktxVersion"
-    implementation "io.github.libktx:ktx-freetype:$ktxVersion"
-    implementation 'com.kotcrab.vis:vis-ui:1.4.11'
+    implementation "io.github.libktx:ktx-vis:$ktxVersion"
+    implementation "com.kotcrab.vis:vis-ui-contrib:$visVersion"
+    implementation "com.kotcrab.vis:vis-ui:$visVersion"
 }
 
 
@@ -66,13 +66,11 @@ project(":desktop") {
 
     dependencies {
         implementation project(":core")
-        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
         implementation "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
-        implementation "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
-        implementation "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
     }
 }
 
@@ -81,15 +79,11 @@ project(":core") {
     apply plugin: "kotlin"
 
     dependencies {
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-        implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        implementation "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
-        implementation "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         implementation "com.badlogicgames.ashley:ashley:$ashleyVersion"
+        implementation "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
         implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
-        implementation "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
+        implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     }
 }
 
