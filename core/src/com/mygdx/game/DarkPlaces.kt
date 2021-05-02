@@ -9,20 +9,21 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.maps.MapObject
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.ScreenUtils
-import com.badlogic.gdx.utils.viewport.ExtendViewport
+import com.badlogic.gdx.utils.viewport.FitViewport
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.mygdx.game.MovementSystem.Direction.LEFT
@@ -38,13 +39,14 @@ import com.mygdx.game.constants.Assets.Font
 import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
 import com.mygdx.game.constants.Assets.Monsters
 import com.mygdx.game.constants.Assets.Names
+import com.mygdx.game.constants.Assets.Names.Companion.WEAPON_SWORD
 import ktx.app.KtxScreen
 import ktx.ashley.entity
 import ktx.ashley.get
 import ktx.ashley.with
 import ktx.assets.DisposableContainer
 import ktx.math.vec2
-import ktx.scene2d.scene2d
+import ktx.scene2d.actors
 import ktx.scene2d.vis.visLabel
 import ktx.scene2d.vis.visTable
 import ktx.tiled.layer
@@ -52,10 +54,11 @@ import ktx.tiled.x
 import ktx.tiled.y
 
 class DarkPlaces(private val game: TheGame) : KtxScreen {
+  private lateinit var mouseLabel: VisLabel
   private val disposableContainer: DisposableContainer = DisposableContainer()
 
   private val orthoCamera: OrthographicCamera = OrthographicCamera()
-  private val viewport: ExtendViewport = ExtendViewport(
+  private val viewport: FitViewport = FitViewport(
     AppConstants.DEFAULT_VIEW_WIDTH / 2,
     AppConstants.DEFAULT_VIEW_HEIGHT / 2,
     orthoCamera
@@ -63,16 +66,21 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   private val stage: Stage = Stage(viewport)
   private val logger: Logger = Logger("darkplaces", INFO)
 
+  private val playerGroup = Group()
+  private val player: DungeonActor = DungeonActor()
+  private val playerWeapon: DungeonActor = DungeonActor()
+
   private lateinit var playerEntity: Entity
+  private lateinit var healthLabel: VisLabel
 
   // animations begging for another home
-  private lateinit var slimeAnimR: Animation<AtlasRegion>
-  private lateinit var slimeAnimL: Animation<AtlasRegion>
+  private lateinit var slimeAnimR: AtlasAnim
+  private lateinit var slimeAnimL: AtlasAnim
 
-  private lateinit var playerIdleAnimL: Animation<AtlasRegion>
-  private lateinit var playerIdleAnimR: Animation<AtlasRegion>
-  private lateinit var playerMoveAnimL: Animation<AtlasRegion>
-  private lateinit var playerMoveAnimR: Animation<AtlasRegion>
+  private lateinit var playerIdleAnimL: AtlasAnim
+  private lateinit var playerIdleAnimR: AtlasAnim
+  private lateinit var playerMoveAnimL: AtlasAnim
+  private lateinit var playerMoveAnimR: AtlasAnim
 
   // resources
   private lateinit var actorAtlas: TextureAtlas
@@ -104,56 +112,75 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     Gdx.input.inputProcessor = stage
     stage.isDebugAll = true
 
-    val playerSpawn = tiledMap.layer("Transitions").objects.find {
-      it?.properties?.get(
-        TYPE,
-        String::class.java
-      ) == "Spawn" && it.name == "Player"
-    }?.let { vec2(it.x, it.y) } ?: Vector2.Zero
-
-    val slimeSpawns =
-      tiledMap.layer("Transitions").objects.filter { it.name.toLowerCase() == Monsters.SLIME }
+    val slimeSpawns = getSlimeSpawns()
     check(slimeSpawns.isNotEmpty())
 
     initEngine(game.engine)
     initAnimations()
-    initPlayer(stage, playerSpawn.x, playerSpawn.y)
+
     initEntities(slimeSpawns)
+    initItems()
 
-    initUi()
+    val playerSpawn = getPlayerSpawn(tiledMap)
+    initPlayer(stage, playerSpawn.x, playerSpawn.y)
+    initAttack(player, playerWeapon)
+    playerGroup.apply {
+      addActor(player)
+      addActor(playerWeapon)
+    }
+
+    initEntities(slimeSpawns)
+    initItems()
+
+    initUi(stage)
   }
 
-  private fun getFancyFont(): BitmapFont? {
-    val generator = FreeTypeFontGenerator(Gdx.files.internal(Font.PC_SR))
-    val parameter = FreeTypeFontGenerator.FreeTypeFontParameter()
-    parameter.size = 10
-    return generator.generateFont(parameter).also { generator.dispose() }
+  private fun getSlimeSpawns(layerName: String = "Transitions") =
+    tiledMap.layer(layerName).objects.filter { it.name.toLowerCase() == Monsters.SLIME }
+
+  private fun getPlayerSpawn(tiledMap: TiledMap) = tiledMap.layer("Transitions").objects.find {
+    it?.properties?.get(
+      TYPE,
+      String::class.java
+    ) == "Spawn" && it.name == "Player"
+  }?.let { vec2(it.x, it.y) } ?: Vector2.Zero
+
+  private fun initItems() {
+
   }
 
-  private fun initUi() {
+  private fun initUi(stage: Stage) {
     game.assetManager.finishLoadingAsset<BitmapFont>(Font.PC_SR)
     game.pcSrFont = game.assetManager.get(Font.PC_SR)
 
     VisUI.load()
 
-    screenTable =
-      scene2d {
-        visTable {
-          setFillParent(true)
-          name = "debugTable"
+    stage.actors {
+      visTable {
+        setFillParent(true)
+        name = "debugTable"
+        debug = true
+        align(Align.topLeft)
+
+        visLabel("health: ${playerEntity[Components.Combat]?.health}") {
+          name = "playerHealth"
+          setAlignment(Align.topLeft)
           debug = true
-          align(Align.bottomLeft)
-          visLabel(Debug.mouseDebugStr) {
-            setFontScale(0.7f)
-          }
-        }
+        }.also { healthLabel = it }
+
+        visLabel(Debug.mouseDebugStr) {
+          name = "mouseDebugStr"
+          setFontScale(0.7f)
+          setAlignment(Align.bottomLeft)
+          debug = true
+        }.also { mouseLabel = it }
       }
-    stage.addActor(screenTable)
+    }
   }
 
   private fun initEngine(engine: PooledEngine) {
     engine.addSystem(CollisionSystem(tiledMap.layer("Walls"), tiledMap.layer("Hazards")))
-    engine.addSystem(CombatSystem())
+    engine.addSystem(CombatSystem(playerGroup))
   }
 
   override fun dispose() {
@@ -164,8 +191,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   override fun render(delta: Float) {
     ScreenUtils.clear(0.2f, 0.2f, 0.2f, 1f)
 
-    val uiActor = screenTable.children.firstOrNull()
-    uiActor.apply { if (this is VisLabel) setText(Debug.mouseDebugStr) }
+    updateHUD()
 
     tiledMapRenderer.render()
     game.engine.update(delta)
@@ -174,14 +200,11 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       act(delta)
       draw()
     }
+  }
 
-    game.batch.begin()
-    game.pcSrFont.draw(
-      game.batch, "HEALTH: ${
-        playerEntity[Components.Combat]?.health
-      }", 2f, viewport.worldHeight
-    )
-    game.batch.end()
+  private fun updateHUD() {
+    mouseLabel.setText(Debug.mouseDebugStr)
+    healthLabel.setText("health: ${playerEntity[Components.Combat]?.health}")
   }
 
   override fun resize(width: Int, height: Int) {
@@ -191,16 +214,16 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
   }
 
   private fun initAnimations() {
-    slimeAnimR = checkedGetAnim(Names.SLIME_IDLE_R, 0.4f)
-    slimeAnimL = checkedGetAnim(Names.SLIME_IDLE_L, 0.4f)
+    slimeAnimR = getAnimOrDie(Names.SLIME_IDLE_R, 0.7f)
+    slimeAnimL = getAnimOrDie(Names.SLIME_IDLE_L, 0.7f)
 
-    playerIdleAnimL = checkedGetAnim(Names.HERO_F_IDLE_L, 0.2f)
-    playerIdleAnimR = checkedGetAnim(Names.HERO_F_IDLE_R, 0.2f)
-    playerMoveAnimR = checkedGetAnim(Names.HERO_F_WALKRUN_R, 0.17f)
-    playerMoveAnimL = checkedGetAnim(Names.HERO_F_WALKRUN_L, 0.17f)
+    playerIdleAnimL = getAnimOrDie(Names.HERO_F_IDLE_L, 0.2f)
+    playerIdleAnimR = getAnimOrDie(Names.HERO_F_IDLE_R, 0.2f)
+    playerMoveAnimR = getAnimOrDie(Names.HERO_F_WALKRUN_R, 0.17f)
+    playerMoveAnimL = getAnimOrDie(Names.HERO_F_WALKRUN_L, 0.17f)
   }
 
-  private fun checkedGetAnim(name: String, frameDuration: Float) =
+  private fun getAnimOrDie(name: String, frameDuration: Float) =
     Animation(
       frameDuration,
       actorAtlas.findRegions(name),
@@ -224,26 +247,27 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     return this
   }
 
-  private fun initPlayer(stage: Stage, initX: Float = 16f * 3, initY: Float = 16f * 3) {
-    val newActor = DungeonActor()
-
+  private fun initPlayer(stage: Stage, initX: Float = 16f * 3, initY: Float = 16f * 3) =
     game.engine.entity {
       with<PlayerComponent> {
         name = "HERO"
       }
 
+      with<AttackComponent> {
+        actor = playerWeapon
+      }
+
       with<ActorComponent> {
-        actor = newActor
+        actor = player
         with(actor) {
           setBounds(playerIdleAnimL.keyFrames.first())
           setPosition(initX, initY)
-          addListener(PlayerInputListener(this@entity))
         }
-        stage.addActor(newActor)
-        stage.keyboardFocus = newActor
+        stage.addActor(playerGroup)
+        stage.addListener(PlayerInputListener(this@entity))
       }
 
-      with<AnimationComponent> {
+      with<RenderComponent> {
         idle = mapOf(
           LEFT to playerIdleAnimL,
           RIGHT to playerIdleAnimR
@@ -265,13 +289,36 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       }
 
       with<CollisionComponent> {
-        newActor.upateRect(boundingRect)
+        player.updateRect(boundingRect)
       }
 
       with<CombatComponent> {
         health = 10
       }
     }.also { playerEntity = it }
+
+  private fun initAttack(playerActor: DungeonActor, playerWeapon: DungeonActor) {
+    playerWeapon.setPosition(playerActor.x, playerActor.y)
+    playerWeapon.name = "playerWeapon"
+//    playerWeapon.isVisible = false
+    playerWeapon.debug = true
+
+    val weaponTex = actorAtlas.findRegion(WEAPON_SWORD)
+    playerWeapon.setBounds(weaponTex)
+
+    game.engine.entity {
+      with<ActorComponent> {
+        actor = playerWeapon
+        attack = AttackComponent().apply {
+          name = "weapon"
+          boundingRect = playerWeapon.updateRect(this.boundingRect ?: Rectangle())
+        }
+      }
+
+      with<RenderComponent> {
+        tex = weaponTex
+      }
+    }
   }
 
   private fun initEntities(slimeSpawns: List<MapObject>) {
@@ -291,7 +338,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
     game.engine.entity {
       logger.info("new slime @ $stageX,$stageY")
       val newActor = DungeonActor()
-      with<AnimationComponent> {
+      with<RenderComponent> {
         idle = mapOf(
           LEFT to slimeAnimR,
           RIGHT to slimeAnimR,
@@ -310,7 +357,7 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       }
 
       with<CollisionComponent> {
-        this.boundingRect = newActor.upateRect(boundingRect)
+        this.boundingRect = newActor.updateRect(boundingRect)
       }
 
       with<CombatComponent> {
@@ -323,5 +370,10 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
       with<TypeComponent> { type = MONSTER; subtype = "slime" }
 
       with<EnemyComponent> { this.name = "slime @ orig ${stageX},${stageY}" }
+
+      with<AttackComponent> {
+        damage = 2
+      }
     }
 }
+

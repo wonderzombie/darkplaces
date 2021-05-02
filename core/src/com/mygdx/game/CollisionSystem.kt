@@ -55,8 +55,6 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
     EnginePriority.Collision
   ) {
 
-  private val tempOtherRect = Rectangle()
-
   private var sortedXList: SortedMap<Float, Entity> = sortedMapOf()
   private var sortedYList: SortedMap<Float, Entity> = sortedMapOf()
 
@@ -176,7 +174,7 @@ class CollisionSystem(private val collisionLayer: MapLayer, private val hazardsL
       sortedYList[actor.y] = entity
       sortedYList[actor.top] = entity
 
-      entity.collComp()?.boundingRect?.apply { actor.upateRect(this) }
+      entity.collComp()?.boundingRect?.apply { actor.updateRect(this) }
     }
 
     override fun entityRemoved(entity: Entity?) {

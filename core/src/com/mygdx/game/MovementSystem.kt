@@ -100,12 +100,12 @@ class MovementSystem :
     coll.correction.setZero()
   }
 
-  enum class Direction(internal val x: Float, internal val y: Float) {
-    NONE(0f, 0f),
-    UP(0f, 1f),
-    RIGHT(1f, 0f),
-    DOWN(0f, -1f),
-    LEFT(-1f, 0f);
+  enum class Direction(internal val x: Float, internal val y: Float, internal val rotation: Float) {
+    NONE(0f, 0f, 0f),
+    UP(0f, 1f, 0f),
+    RIGHT(1f, 0f, 90f),
+    DOWN(0f, -1f, 180f),
+    LEFT(-1f, 0f, 270f);
 
     val isCardinal: Boolean
       get() = this != NONE

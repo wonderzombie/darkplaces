@@ -14,6 +14,7 @@ import com.mygdx.game.MovementSystem.Direction.UP
 import com.mygdx.game.StateComponent.State.IDLE
 import com.mygdx.game.StateComponent.State.MOVING
 import ktx.ashley.EngineEntity
+import ktx.ashley.get
 
 class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
   private val logger: Logger = Logger("input", INFO)
@@ -30,9 +31,8 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
     if (keycode == Keys.H) {
       logger.error("debugging if you want it")
     }
-
     logger.info("event $event - keycode $keycode")
-    if (keycode !in defaultKeymap) return false
+//    if (keycode !in defaultKeymap) return false
 
     val actor = player.actorComp()?.actor
     val movementComp = player.movComp()
@@ -40,6 +40,11 @@ class PlayerInputListener(controlledEntity: EngineEntity) : InputListener() {
 
     val busy = stateComp?.state != IDLE
     val hasActions = actor?.hasActions() ?: true
+
+    if (keycode == Keys.SPACE) {
+      player[Components.Attack]?.active = true
+      logger.info("ATTACK event")
+    }
 
     if (busy && hasActions) {
       return false

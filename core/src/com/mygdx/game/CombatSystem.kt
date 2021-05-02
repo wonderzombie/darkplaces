@@ -5,9 +5,11 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.maps.objects.RectangleMapObject
+import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.utils.Logger
 import com.badlogic.gdx.utils.Logger.INFO
 import com.badlogic.gdx.utils.TimeUtils
+import com.mygdx.game.Components.Companion.Attack
 import com.mygdx.game.Components.Companion.Collision
 import com.mygdx.game.Components.Companion.Combat
 import com.mygdx.game.Components.Companion.State
@@ -19,7 +21,12 @@ import com.mygdx.game.constants.Assets.MapProperties.MapObj.Companion.TYPE
 import ktx.ashley.allOf
 
 val family: Family =
-  allOf(CombatComponent::class, CollisionComponent::class, TypeComponent::class).get()
+  allOf(
+    AttackComponent::class,
+    CombatComponent::class,
+    CollisionComponent::class,
+    TypeComponent::class
+  ).get()
 
 val logger: Logger = Logger("com", INFO)
 
@@ -27,7 +34,7 @@ val hazards: Map<String, Int> = mapOf(
   "spikes" to 3
 )
 
-class CombatSystem : IteratingSystem(family, EnginePriority.Combat) {
+class CombatSystem(playerGroup: Group) : IteratingSystem(family, EnginePriority.Combat) {
   override fun processEntity(entity: Entity?, deltaTime: Float) {
     entity ?: return
 
@@ -37,8 +44,14 @@ class CombatSystem : IteratingSystem(family, EnginePriority.Combat) {
     val comComp = Combat.get(entity)
     val collComp = Collision.get(entity)
     val typeComp = Type.get(entity)
+    val attackComp = Attack.get(entity)
 
-    applyHazardEffects(collComp, entity, comComp).also { if (it) stateComp.state = HIT }
+    applyHazardEffects(
+      entity.actor()?.name ?: "(none)",
+      collComp,
+      comComp
+    ).also { if (it) stateComp.state = HIT }
+    applyCombatEffects(collComp, comComp, attackComp)
 
     if (checkDead(comComp)) {
       stateComp.state = when (typeComp.type) {
@@ -46,20 +59,27 @@ class CombatSystem : IteratingSystem(family, EnginePriority.Combat) {
         else -> stateComp.state
       }
     }
+  }
+
+  private fun applyCombatEffects(
+    collComp: CollisionComponent,
+    comComp: CombatComponent,
+    attackComp: AttackComponent,
+  ) {
 
   }
 
   private fun applyHazardEffects(
-    collComp: CollisionComponent?,
-    entity: Entity?,
+    name: String,
+    collComp: CollisionComponent,
     com: CombatComponent
   ): Boolean {
-    val rectMapObj = collComp?.lastMapObjColl as RectangleMapObject?
+    val rectMapObj = collComp.lastMapObjColl as RectangleMapObject?
     rectMapObj ?: return false
 
     val hazardDamage = getHazardDamage(rectMapObj)
     if (hazardDamage != 0 && TimeUtils.timeSinceMillis(com.lastHitTime) >= 1000L) {
-      logger.info("damaged entity $entity @ ${com.health} hp for $hazardDamage")
+      logger.info("damaged entity $name @ ${com.health} hp for $hazardDamage")
       applyDamage(com, hazardDamage)
     }
 
