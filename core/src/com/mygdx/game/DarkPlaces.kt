@@ -336,7 +336,6 @@ class DarkPlaces(private val game: TheGame) : KtxScreen {
 
   private fun newSlime(stageX: Float, stageY: Float, firstFrame: AtlasRegion) =
     game.engine.entity {
-      logger.info("new slime @ $stageX,$stageY")
       val newActor = DungeonActor()
       with<RenderComponent> {
         idle = mapOf(

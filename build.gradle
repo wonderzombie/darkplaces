@@ -41,10 +41,9 @@ dependencies {
     ext {
         // Update this version to match the latest KTX release:
         ktxVersion = '1.10.0-b1'
-        visVersion = '1.4.11'
+        visVersion = '1.5.0'
     }
     implementation "io.github.libktx:ktx-actors:$ktxVersion"
-    implementation "io.github.libktx:ktx-app:$ktxVersion"
     implementation "io.github.libktx:ktx-ashley:$ktxVersion"
     implementation "io.github.libktx:ktx-assets:$ktxVersion"
     implementation "io.github.libktx:ktx-collections:$ktxVersion"
@@ -58,6 +57,7 @@ dependencies {
     implementation "io.github.libktx:ktx-vis:$ktxVersion"
     implementation "com.kotcrab.vis:vis-ui-contrib:$visVersion"
     implementation "com.kotcrab.vis:vis-ui:$visVersion"
+    implementation 'io.github.libktx:ktx-app:1.10.0-b1'
 }
 
 

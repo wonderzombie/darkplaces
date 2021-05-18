@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.Event
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Logger
@@ -87,7 +86,10 @@ class ActorSystem : IteratingSystem(
       }
     }
 
-    entity.get<AttackComponent>()?.apply {
+
+    val attackComp = entity.get<AttackComponent>()
+
+    attackComp?.apply {
       if (!active) return@apply
       if (TimeUtils.timeSinceMillis(started) >= cooldownMs) return@apply
       logger.info("stabbity stab")
