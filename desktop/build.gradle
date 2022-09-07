@@ -27,7 +27,7 @@ task debug(dependsOn: classes, type: JavaExec) {
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
-    implementation 'io.github.libktx:ktx-app:1.10.0-b1'
+    implementation 'io.github.libktx:ktx-app:1.11.0-rc2'
 }
 
 task dist(type: Jar) {

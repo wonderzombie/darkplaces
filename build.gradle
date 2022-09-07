@@ -1,5 +1,6 @@
 buildscript {
-    ext.kotlin_version = '1.4.32'
+    ext.kotlin_version = '1.6.21'
+    // 211-1.6.21-release-334-IJ7442.40
     repositories {
         mavenLocal()
         mavenCentral()
@@ -57,7 +58,7 @@ dependencies {
     implementation "io.github.libktx:ktx-vis:$ktxVersion"
     implementation "com.kotcrab.vis:vis-ui-contrib:$visVersion"
     implementation "com.kotcrab.vis:vis-ui:$visVersion"
-    implementation 'io.github.libktx:ktx-app:1.10.0-b1'
+    implementation 'io.github.libktx:ktx-app:1.11.0-rc2'
 }
 
 
