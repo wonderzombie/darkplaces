@@ -1,7 +1,8 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
-sourceCompatibility = 1.15
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 sourceSets.main.java.srcDirs = ["src/"]
 sourceSets.main.resources.srcDirs = ["../core/assets"]
 
@@ -25,9 +26,15 @@ task debug(dependsOn: classes, type: JavaExec) {
     debug = true
 }
 
+tasks.withType(JavaExec).configureEach {
+    if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+        jvmArgs += "-XstartOnFirstThread"
+    }
+}
+
 dependencies {
+    implementation "io.github.libktx:ktx-app:$ktxVersion"
     testImplementation 'junit:junit:4.13.2'
-    implementation 'io.github.libktx:ktx-app:1.11.0-rc2'
 }
 
 task dist(type: Jar) {
@@ -45,12 +52,6 @@ task dist(type: Jar) {
 dist.dependsOn classes
 
 eclipse.project.name = appName + "-desktop"
-repositories {
-    mavenCentral()
-}
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
